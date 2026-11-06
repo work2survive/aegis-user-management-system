@@ -1020,14 +1020,16 @@
         (grp.privileges.rcs_receive.allow_all ? 'Receive: All' : `Receive: ${grp.privileges.rcs_receive.types?.length || 0} types`) : 'Receive: None';
 
       const groupActions = [];
-      if (canEditGrp) {
-        groupActions.push(`
-          <button class="btn btn-outline btn-sm btn-edit-group" data-id="${grp.id}">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            <span>Edit</span>
-          </button>
-        `);
-      }
+      // Always provide "View Settings" button for inspecting group privileges & parameters
+      groupActions.push(`
+        <button class="btn btn-outline btn-sm btn-view-group" data-id="${grp.id}">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <span>View Settings</span>
+        </button>
+      `);
       if (canDisableGrp) {
         groupActions.push(`
           <button class="btn btn-outline btn-sm btn-icon-only btn-toggle-group-status" data-id="${grp.id}" title="${grp.status === 'active' ? 'Disable Group' : 'Enable Group'}">
@@ -2283,16 +2285,154 @@
   // SECTION 14: GROUP MODALS & DUPLICATE PROTECTION
   // =========================================================================
 
+  let activeModalGroup = null;
+
   /**
-   * Opens the Create/Edit Group modal dialog.
-   * @param {Object|null} group - Existing group or null for creation
+   * Sets the operational mode of the Group Modal dialog.
+   * Modes:
+   * - 'view': Read-only inspection of group configuration, scope, and privileges.
+   * - 'edit': Modifying an existing group's parameters and capabilities.
+   * - 'create': Provisioning a brand-new group.
+   * 
+   * @param {'view'|'edit'|'create'} mode
+   * @param {Object|null} group
    */
-  function openGroupModal(group = null) {
+  function setGroupModalMode(mode, group = null) {
     const modal = document.getElementById('modalGroup');
     const title = document.getElementById('modalGroupTitle');
+    const modeBadge = document.getElementById('groupModalModeBadge');
+    const form = document.getElementById('formGroup');
+    const autoNamingBanner = document.getElementById('groupAutoNamingBanner');
+    const btnClose = document.getElementById('btnCloseGroupModal');
+    const btnCancelEdit = document.getElementById('btnCancelEditGroup');
+    const btnSwitchEdit = document.getElementById('btnSwitchToEditGroup');
+    const btnSave = document.getElementById('btnSaveGroup');
+
+    if (!modal || !form) return;
+
+    const canEditGrp = hasPrivilege('edit_group');
+    const isView = mode === 'view';
+    const isEdit = mode === 'edit';
+    const isCreate = mode === 'create';
+
+    // 1. Title and Mode Badge
+    if (isView) {
+      if (title) title.textContent = `Group Settings: ${group ? group.name : 'Inspection'}`;
+      if (modeBadge) {
+        modeBadge.textContent = '👁️ View Settings';
+        modeBadge.className = 'badge badge-secondary';
+      }
+    } else if (isEdit) {
+      if (title) title.textContent = `Edit Group: ${group ? group.name : ''}`;
+      if (modeBadge) {
+        modeBadge.textContent = '✏️ Editing Settings';
+        modeBadge.className = 'badge badge-primary';
+      }
+    } else {
+      if (title) title.textContent = 'Create New Group';
+      if (modeBadge) {
+        modeBadge.textContent = '➕ New Group';
+        modeBadge.className = 'badge badge-success';
+      }
+    }
+
+    // 2. Banner and Helper tools
+    if (autoNamingBanner) autoNamingBanner.style.display = isView ? 'none' : 'flex';
+    document.querySelectorAll('#modalGroup .select-all-btn').forEach(btn => {
+      btn.style.display = isView ? 'none' : 'inline-block';
+    });
+
+    // 3. Form input states (Disabled in view mode, enabled in edit/create)
+    const formInputs = [
+      'groupNameInput',
+      'groupCodenameInput',
+      'groupCategoryInput',
+      'groupDescInput',
+      'groupScopeCountry',
+      'groupScopeRegion',
+      'groupScopeOrg',
+      'groupScopeSubOrg'
+    ];
+
+    formInputs.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.disabled = isView;
+    });
+
+    const rInteractive = document.getElementById('grpAccTypeInteractive');
+    const rContact = document.getElementById('grpAccTypeContactOnly');
+    if (rInteractive) rInteractive.disabled = isView;
+    if (rContact) rContact.disabled = isView;
+
+    // Checkboxes and radios
+    form.querySelectorAll('.priv-check').forEach(c => c.disabled = isView);
+    form.querySelectorAll('.custom-checkbox').forEach(c => c.disabled = isView);
+    form.querySelectorAll('input[type="radio"]').forEach(r => r.disabled = isView);
+
+    // RCS pills interactivity
+    form.querySelectorAll('.rcs-pill').forEach(pill => {
+      if (isView) {
+        pill.style.pointerEvents = 'none';
+        pill.style.cursor = 'default';
+      } else {
+        pill.style.pointerEvents = 'auto';
+        pill.style.cursor = 'pointer';
+      }
+    });
+
+    // 4. Modal Footer Buttons
+    if (isView) {
+      if (btnClose) {
+        btnClose.style.display = 'inline-flex';
+        btnClose.textContent = 'Close';
+      }
+      if (btnCancelEdit) btnCancelEdit.style.display = 'none';
+      if (btnSave) btnSave.style.display = 'none';
+      // Completely hide "Edit Settings" button if user lacks edit_group privilege
+      if (btnSwitchEdit) {
+        btnSwitchEdit.style.display = canEditGrp ? 'inline-flex' : 'none';
+        btnSwitchEdit.onclick = () => setGroupModalMode('edit', group || activeModalGroup);
+      }
+    } else if (isEdit) {
+      if (btnClose) btnClose.style.display = 'none';
+      if (btnCancelEdit) {
+        btnCancelEdit.style.display = 'inline-flex';
+        btnCancelEdit.onclick = () => {
+          // Re-populate original group state and switch back to view
+          if (group || activeModalGroup) openGroupModal(group || activeModalGroup, 'view');
+        };
+      }
+      if (btnSwitchEdit) btnSwitchEdit.style.display = 'none';
+      if (btnSave) {
+        btnSave.style.display = 'inline-flex';
+        btnSave.textContent = 'Save Changes';
+      }
+    } else {
+      // Create mode
+      if (btnClose) {
+        btnClose.style.display = 'inline-flex';
+        btnClose.textContent = 'Cancel';
+      }
+      if (btnCancelEdit) btnCancelEdit.style.display = 'none';
+      if (btnSwitchEdit) btnSwitchEdit.style.display = 'none';
+      if (btnSave) {
+        btnSave.style.display = 'inline-flex';
+        btnSave.textContent = 'Save Group';
+      }
+    }
+  }
+
+  /**
+   * Opens the Group modal dialog in either View, Edit, or Create mode.
+   * @param {Object|null} group - Existing group or null for creation
+   * @param {'view'|'edit'|'create'} mode - Initial presentation mode
+   */
+  function openGroupModal(group = null, mode = 'view') {
+    const modal = document.getElementById('modalGroup');
     const form = document.getElementById('formGroup');
     if (!modal || !form) return;
 
+    activeModalGroup = group;
     form.reset();
 
     const scopeReg = document.getElementById('groupScopeRegion');
@@ -2352,7 +2492,6 @@
     }
 
     if (group) {
-      title.textContent = `Edit Group: ${group.name}`;
       document.getElementById('groupIdInput').value = group.id;
       document.getElementById('groupNameInput').value = group.name;
       document.getElementById('groupCodenameInput').value = group.codeName;
@@ -2367,9 +2506,10 @@
       }
 
       setPrivilegeCheckboxes(group.privileges);
+      setGroupModalMode(mode || 'view', group);
     } else {
-      title.textContent = 'Create New Group';
       document.getElementById('groupIdInput').value = '';
+      setGroupModalMode('create', null);
     }
 
     modal.classList.add('active');
@@ -3257,7 +3397,7 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
           showToast('Access Denied: Your group does not have "Create Groups" privilege.', 'danger');
           return;
         }
-        openGroupModal();
+        openGroupModal(null, 'create');
       };
     }
 
@@ -3366,11 +3506,11 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
     const groupsGrid = document.getElementById('groupsCardsGrid');
     if (groupsGrid) {
       groupsGrid.onclick = (e) => {
-        const editBtn = e.target.closest('.btn-edit-group');
-        if (editBtn) {
-          const gid = editBtn.dataset.id;
+        const viewBtn = e.target.closest('.btn-view-group') || e.target.closest('.btn-edit-group');
+        if (viewBtn) {
+          const gid = viewBtn.dataset.id;
           const grp = DB.groups.find(g => g.id === gid);
-          if (grp) openGroupModal(grp);
+          if (grp) openGroupModal(grp, 'view');
           return;
         }
 

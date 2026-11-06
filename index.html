@@ -791,7 +791,10 @@
   <div class="modal-backdrop" id="modalGroup">
     <div class="modal-dialog lg">
       <div class="modal-header">
-        <h3 class="modal-title" id="modalGroupTitle">Create New Group</h3>
+        <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+          <h3 class="modal-title" id="modalGroupTitle">Group Settings</h3>
+          <span class="badge badge-secondary" id="groupModalModeBadge" style="font-size: 0.7rem;">👁️ View Settings</span>
+        </div>
         <button class="btn btn-ghost btn-sm btn-icon-only modal-close-btn" data-close="modalGroup">&times;</button>
       </div>
       <form id="formGroup">
@@ -799,7 +802,7 @@
           <input type="hidden" id="groupIdInput">
 
           <!-- Auto-Naming Suggestion Banner -->
-          <div style="background: var(--primary-light); border: 1px solid hsla(var(--primary-hue), var(--primary-sat), var(--primary-lit), 0.3); border-radius: var(--radius-md); padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+          <div id="groupAutoNamingBanner" style="background: var(--primary-light); border: 1px solid hsla(var(--primary-hue), var(--primary-sat), var(--primary-lit), 0.3); border-radius: var(--radius-md); padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
             <div>
               <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary);">Smart Auto-Naming &amp; Codename Generator</div>
               <div style="font-size: 0.75rem; color: var(--text-secondary);">Suggests standard names or military-grade codenames based on your privilege selections.</div>
@@ -1053,9 +1056,17 @@
           </div>
 
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary modal-close-btn" data-close="modalGroup">Cancel</button>
-          <button type="submit" class="btn btn-primary" id="btnSaveGroup">Save Group</button>
+        <div class="modal-footer" id="groupModalFooter">
+          <button type="button" class="btn btn-secondary modal-close-btn" data-close="modalGroup" id="btnCloseGroupModal">Close</button>
+          <button type="button" class="btn btn-secondary" id="btnCancelEditGroup" style="display: none;">Cancel</button>
+          <button type="button" class="btn btn-primary" id="btnSwitchToEditGroup">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+              <path d="M12 20h9"/>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+            Edit Settings
+          </button>
+          <button type="submit" class="btn btn-primary" id="btnSaveGroup" style="display: none;">Save Changes</button>
         </div>
       </form>
     </div>

@@ -851,13 +851,14 @@ body {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(15, 23, 42, 0.65);
   backdrop-filter: blur(4px);
-  z-index: 100;
+  z-index: 1000;
   display: none;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem;
+  padding: 1.25rem;
+  overflow-y: auto;
 }
 
 .modal-backdrop.active {
@@ -871,16 +872,25 @@ body {
   border-radius: var(--radius-lg);
   width: 100%;
   max-width: 640px;
-  max-height: 90vh;
+  max-height: calc(100vh - 2.5rem);
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-xl);
   overflow: hidden;
   animation: scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  margin: auto;
 }
 
 .modal-dialog.lg {
-  max-width: 840px;
+  max-width: 860px;
+}
+
+.modal-dialog form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 @keyframes scaleUp {
@@ -889,11 +899,13 @@ body {
 }
 
 .modal-header {
+  flex-shrink: 0;
   padding: 1.15rem 1.5rem;
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  background: var(--bg-surface);
 }
 
 .modal-title {
@@ -905,13 +917,32 @@ body {
 .modal-body {
   padding: 1.5rem;
   overflow-y: auto;
+  overflow-x: hidden;
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) var(--bg-muted);
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+.modal-body::-webkit-scrollbar-track {
+  background: var(--bg-muted);
+}
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
 
 .modal-footer {
+  flex-shrink: 0;
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--border-color);
   background: var(--bg-muted);

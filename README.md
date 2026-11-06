@@ -67,6 +67,8 @@ The platform simulates multi-tenant administrative boundaries, role-based access
 - **Form & CSV Validation**: Prevents saving users or importing rosters that violate the mandatory unified standard.
 
 ### 2. Group Management & Duplicate Protection (Rules 1.0 – 1.1)
+- **View Settings & Audit Workflow**: Group cards feature a dedicated **View Settings** button allowing operators and auditors to inspect privileges, scoping boundaries, account access modes, and RCS message capabilities in a clean read-only dialog. Authorized administrators can click the internal **Edit Settings** button to unlock modifications.
+- **Scrollable & Uncropped Dialog Windows**: Modal dialogs enforce structured flex containers with sticky headers/footers and smooth vertical scrolling, preventing content clipping on all viewport heights.
 - Create, rename, edit, disable, and delete security groups.
 - **Duplicate Privilege Detection**: The system computes a canonical cryptographic signature of all granted capabilities. If a newly created or edited group matches the exact permissions of an existing group, creation is **blocked** with an explicit warning to maintain non-redundant access control policies.
 - **Smart Auto-Naming & Codename Generator**: Live suggestion button analyzes selected permissions and territory to propose descriptive titles (e.g. `Czech Regional Education Supervisor [Level 2]`) and military-grade operational codenames (e.g. `BOHEMIA-INSP-391`).

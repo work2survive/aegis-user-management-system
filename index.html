@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aegis Identity — Slovak & Czech User & Hierarchy Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="header-inner">
+      <!-- Brand Logo & Title -->
+      <div class="brand-section">
+        <div class="brand-logo" title="Aegis Identity Core">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">Aegis Identity</h1>
+          <p class="brand-subtitle">Unified User &amp; Scope Management (CZ / SK)</p>
+        </div>
+      </div>
+
+      <!-- Current Logged-in User Identity Display -->
+      <div class="user-identity-card" id="headerUserCard" title="Currently Simulated User Identity">
+        <div class="user-avatar-badge" id="headerAvatar">JN
+          <span class="user-status-indicator" id="headerStatusDot"></span>
+        </div>
+        <div class="user-meta-details">
+          <div class="user-meta-top">
+            <span class="user-full-name" id="headerUserName">Jan Novák</span>
+            <span class="badge badge-primary" id="headerGroupBadge">NEXUS-OMNI</span>
+          </div>
+          <div class="user-hierarchy-crumbs" id="headerHierarchyCrumbs">
+            <span id="headerCountryFlag">🇨🇿 CZ</span>
+            <span class="crumb-sep">/</span>
+            <span id="headerRegionName">Praha</span>
+            <span class="crumb-sep">/</span>
+            <span id="headerOrgName">Univerzita Karlova</span>
+            <span class="crumb-sep">/</span>
+            <span id="headerSubOrgName">MFF</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Header Action Controls -->
+      <div class="header-actions">
+        <!-- God Mode Quick Trigger -->
+        <button class="btn btn-god-mode btn-sm" id="btnGodModeHeader" title="Super User (God Mode) — Unlock all privileges and unrestricted global scope">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 2 22 22 22 12 2"/>
+            <circle cx="12" cy="14" r="3.2"/>
+            <circle cx="12" cy="14" r="1.2" fill="currentColor"/>
+          </svg>
+          <span>God Mode</span>
+        </button>
+
+        <!-- Persona Switcher Shortcut -->
+        <button class="btn btn-secondary btn-sm" id="btnOpenUserSwitcherHeader" title="Switch between 300 test users &amp; 20 groups">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="8.5" cy="7" r="4"/>
+            <polyline points="17 11 19 13 23 9"/>
+          </svg>
+          <span>Switch User</span>
+        </button>
+
+        <!-- Rebrand Drawer Trigger -->
+        <button class="btn btn-outline btn-sm" id="btnOpenRebrand" title="Customize theme colors, fonts, and radii">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/>
+            <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/>
+            <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/>
+            <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/>
+            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.563-2.512 5.563-5.563C22 6.5 17.5 2 12 2z"/>
+          </svg>
+          <span>Rebrand</span>
+        </button>
+
+        <!-- Dark / Light Theme Toggle -->
+        <button class="btn btn-ghost btn-icon-only" id="btnThemeToggle" title="Toggle Light / Dark mode">
+          <svg id="themeIconSun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg id="themeIconMoon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Scope & Restriction Status Banner -->
+  <div class="scope-banner" id="scopeBanner">
+    <div class="scope-banner-content">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span id="scopeBannerText">Active Scope: <strong>Global (Unrestricted)</strong> — Full administrative purview.</span>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <main class="app-container">
+
+    <!-- Navigation Tabs -->
+    <nav class="tabs-navigation">
+      <div class="tabs-list">
+        <button class="tab-btn active" data-tab="tab-users">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <span>Users Management</span>
+          <span class="tab-badge" id="tabBadgeUsers">300</span>
+        </button>
+
+        <button class="tab-btn" data-tab="tab-groups">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          <span>Groups &amp; Privileges</span>
+          <span class="tab-badge" id="tabBadgeGroups">20</span>
+        </button>
+
+        <button class="tab-btn" data-tab="tab-hierarchy">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+          </svg>
+          <span>Regions &amp; Organizations</span>
+          <span class="tab-badge" id="tabBadgeHierarchy">15 Orgs</span>
+        </button>
+
+        <button class="tab-btn" data-tab="tab-rcs">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            <path d="M8 10h.01"/>
+            <path d="M12 10h.01"/>
+            <path d="M16 10h.01"/>
+          </svg>
+          <span>RCS Messaging Studio</span>
+          <span class="tab-badge" id="tabBadgeRcs">10 Types</span>
+        </button>
+
+        <button class="tab-btn" data-tab="tab-audit">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          <span>System Status &amp; Logs</span>
+        </button>
+      </div>
+
+      <!-- Quick Action Buttons for Current Tab -->
+      <div class="tab-actions-header">
+        <button class="btn btn-outline btn-sm" id="btnExportUsersCsv" title="Export currently filtered users to CSV">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>Export CSV</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ====================================================================
+         TAB 1: USERS MANAGEMENT
+         ==================================================================== -->
+    <section class="tab-content active" id="tab-users">
+      
+      <!-- Toolbar & Multi-Scope Filter -->
+      <div class="toolbar-card">
+        <div class="toolbar-top-row">
+          <div class="search-input-wrapper">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" class="input-field" id="userSearchInput" placeholder="Search by name, email, mandatory phone number, or username...">
+          </div>
+
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <button class="btn btn-secondary btn-sm" id="btnOpenImportUsers" title="Import users via CSV/XLS format">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <span>Import CSV / XLS</span>
+            </button>
+
+            <button class="btn btn-primary btn-sm" id="btnOpenCreateUser">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              <span>Create User</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filters Row (Country, Region, Org, Sub-Org, Group, Status) -->
+        <div class="toolbar-filters-row">
+          <select class="filter-select" id="filterCountry">
+            <option value="ALL">All Countries (🇨🇿 CZ &amp; 🇸🇰 SK)</option>
+            <option value="CZ">Czech Republic 🇨🇿</option>
+            <option value="SK">Slovakia 🇸🇰</option>
+          </select>
+
+          <select class="filter-select" id="filterRegion">
+            <option value="ALL">All Regions</option>
+          </select>
+
+          <select class="filter-select" id="filterOrg">
+            <option value="ALL">All Organizations</option>
+          </select>
+
+          <select class="filter-select" id="filterSubOrg">
+            <option value="ALL">All Sub-organizations</option>
+          </select>
+
+          <select class="filter-select" id="filterGroup">
+            <option value="ALL">All Groups</option>
+          </select>
+
+          <select class="filter-select" id="filterStatus">
+            <option value="ALL">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="suspended">Suspended</option>
+          </select>
+
+          <button class="btn btn-ghost btn-sm" id="btnResetUserFilters" title="Clear all filters">
+            Reset Filters
+          </button>
+        </div>
+      </div>
+
+      <!-- Bulk Selection Action Bar -->
+      <div class="bulk-action-bar" id="bulkActionBar">
+        <div class="bulk-count-label">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span id="bulkSelectedCount">0 users selected</span>
+        </div>
+        <div class="bulk-actions-group">
+          <button class="btn btn-secondary btn-sm" id="btnBulkChangeGroup">Change Group</button>
+          <button class="btn btn-secondary btn-sm" id="btnBulkChangeStatus">Change Status</button>
+          <button class="btn btn-danger btn-sm" id="btnBulkDelete">Delete Selected</button>
+          <button class="btn btn-ghost btn-sm" id="btnBulkClear">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Users Table -->
+      <div class="table-responsive">
+        <table class="data-table" id="usersTable">
+          <thead>
+            <tr>
+              <th style="width: 38px;">
+                <input type="checkbox" class="custom-checkbox" id="checkSelectAllUsers" title="Select all on this page">
+              </th>
+              <th>User &amp; Email</th>
+              <th>Phone (Mandatory Unified)</th>
+              <th>Group &amp; Role</th>
+              <th>Organization &amp; Sub-Org</th>
+              <th>Region</th>
+              <th>Status</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+
+        <!-- Pagination Footer -->
+        <div class="table-footer">
+          <div id="usersPaginationSummary">Showing 1–25 of 300 users</div>
+          <div class="pagination-controls" id="usersPaginationControls">
+            <!-- Dynamically generated pagination buttons -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 2: GROUPS & PRIVILEGES
+         ==================================================================== -->
+    <section class="tab-content" id="tab-groups">
+      <div class="toolbar-card">
+        <div class="toolbar-top-row">
+          <div class="search-input-wrapper">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" class="input-field" id="groupSearchInput" placeholder="Search groups by name, codename, or description...">
+          </div>
+
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <select class="filter-select" id="filterGroupCategory">
+              <option value="ALL">All Categories</option>
+              <option value="Super Users">Super Users</option>
+              <option value="Schools">Schools</option>
+              <option value="Teachers">Teachers</option>
+              <option value="Alumni">Alumni</option>
+              <option value="Testers">Testers</option>
+              <option value="Supervisors of different levels">Supervisors (All Levels)</option>
+            </select>
+
+            <button class="btn btn-primary btn-sm" id="btnOpenCreateGroup">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              <span>Create New Group</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Groups Cards Grid -->
+      <div class="cards-grid" id="groupsCardsGrid">
+        <!-- Dynamically rendered group cards -->
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 3: REGIONS & ORGANIZATIONS HIERARCHY
+         ==================================================================== -->
+    <section class="tab-content" id="tab-hierarchy">
+      <div class="toolbar-card">
+        <div class="toolbar-top-row">
+          <div>
+            <h3 style="font-size: 1rem; font-weight: 700;">Institutional &amp; Geographic Hierarchy</h3>
+            <p style="font-size: 0.775rem; color: var(--text-secondary);">Manage hierarchical scopes: Countries &gt; Regions &gt; Organizations &gt; Sub-Organizations.</p>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-secondary btn-sm" id="btnAddRegionBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Add Region</span>
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btnAddOrgBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Add Organization</span>
+            </button>
+            <button class="btn btn-primary btn-sm" id="btnAddSubOrgBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Add Sub-organization</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hierarchy Tree & List View Container -->
+      <div id="hierarchyContainer" style="display: flex; flex-direction: column; gap: 1rem;">
+        <!-- Dynamically rendered hierarchy nodes -->
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 4: RCS MESSAGING STUDIO
+         ==================================================================== -->
+    <section class="tab-content" id="tab-rcs">
+      <div class="rcs-sim-container">
+        
+        <!-- Left: Composer & Permission Matrix -->
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <div class="toolbar-card" style="margin-bottom: 0;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.25rem;">RCS Message Dispatcher</h3>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">
+              Enforces strict group-level trigger and receipt privileges across the 10 standardized RCS alert categories.
+            </p>
+
+            <form id="rcsDispatchForm" style="display: flex; flex-direction: column; gap: 1rem;">
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label">Dispatching Sender Group <span class="req">*</span></label>
+                  <select class="form-control" id="rcsSenderGroupSelect">
+                    <!-- Populated dynamically with groups permitted to trigger RCS -->
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">RCS Message Category (1 of 10) <span class="req">*</span></label>
+                  <select class="form-control" id="rcsMessageTypeSelect">
+                    <!-- Populated with types allowed for selected sender group -->
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Target Recipient Group(s) <span class="req">*</span></label>
+                <div id="rcsTargetGroupsContainer" style="display: flex; flex-wrap: wrap; gap: 0.5rem; max-height: 120px; overflow-y: auto; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-muted);">
+                  <!-- Checkboxes for groups that have privilege to receive this message type -->
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Message Title / Subject</label>
+                <input type="text" class="form-control" id="rcsMsgTitle" value="Dôležité oznámenie o organizácii výučby">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Message Body (Rich Text RCS Content)</label>
+                <textarea class="form-control" id="rcsMsgBody" rows="4">Vážení pedagógovia a študenti, upozorňujeme na mimoriadny rozvrh a bezpečnostné protokoly platné od zajtrajšieho dňa. Potvrďte prosím prijatie tejto správy stlačením tlačidla nižšie.</textarea>
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label">Interactive Action Button Label</label>
+                  <input type="text" class="form-control" id="rcsActionBtnLabel" value="Acknowledge Receipt / Potvrdiť">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Action Target URL / Deep Link</label>
+                  <input type="text" class="form-control" id="rcsActionBtnUrl" value="https://aegis.edu.sk/portal/confirm">
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
+                <button type="button" class="btn btn-secondary" id="btnRcsResetForm">Reset</button>
+                <button type="submit" class="btn btn-primary" id="btnRcsSendTrigger">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                  </svg>
+                  <span>Dispatch RCS Broadcast</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- RCS Dispatch Log Table -->
+          <div class="table-responsive">
+            <div style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); font-weight: 700; font-size: 0.85rem;">
+              Dispatched RCS History Log
+            </div>
+            <table class="data-table" id="rcsHistoryTable">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Sender Group</th>
+                  <th>Type</th>
+                  <th>Title</th>
+                  <th>Target Recipients</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="rcsHistoryTableBody">
+                <!-- Dynamically updated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Right: Real-time Smartphone RCS Preview Mockup -->
+        <div>
+          <div style="text-align: center; margin-bottom: 0.5rem; font-size: 0.775rem; color: var(--text-muted); font-weight: 600;">
+            LIVE RCS CARD PREVIEW (DEVICE DISPLAY)
+          </div>
+          <div class="rcs-phone-mock">
+            <div class="phone-top-bar">
+              <span>09:41</span>
+              <span>RCS Verified • LTE+</span>
+              <span>100% 🔋</span>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0;">
+              <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700;">
+                EDU
+              </div>
+              <div style="display: flex; flex-direction: column;">
+                <span style="font-weight: 700; font-size: 0.825rem; display: flex; align-items: center; gap: 0.25rem;">
+                  <span id="rcsMockSenderName">Aegis National Education</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="white" stroke-width="2">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                </span>
+                <span style="font-size: 0.675rem; color: #9ca3af;">RCS Business Messaging Verified</span>
+              </div>
+            </div>
+
+            <!-- Rich Card Mockup -->
+            <div class="rcs-bubble-card">
+              <div class="rcs-bubble-header">
+                <span id="rcsMockTypeBadge">🚨 System Notification</span>
+              </div>
+              <div style="font-weight: 700; font-size: 0.9rem; color: #f3f4f6;" id="rcsMockTitle">
+                Dôležité oznámenie o organizácii výučby
+              </div>
+              <p style="color: #d1d5db; font-size: 0.8rem;" id="rcsMockBody">
+                Vážení pedagógovia a študenti, upozorňujeme na mimoriadny rozvrh a bezpečnostné protokoly platné od zajtrajšieho dňa. Potvrďte prosím prijatie tejto správy stlačením tlačidla nižšie.
+              </p>
+
+              <div style="margin-top: 0.5rem;">
+                <button type="button" style="width: 100%; padding: 0.45rem; border-radius: 8px; background: var(--primary); border: none; color: white; font-weight: 600; font-size: 0.775rem; cursor: pointer;" id="rcsMockActionButton">
+                  Acknowledge Receipt / Potvrdiť
+                </button>
+              </div>
+            </div>
+
+            <div style="text-align: right; font-size: 0.65rem; color: #6b7280;">
+              Delivered via Google RCS Gateway • Read
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 5: SYSTEM STATUS & AUDIT LOGS
+         ==================================================================== -->
+    <section class="tab-content" id="tab-audit">
+      <div class="toolbar-card">
+        <h3 style="font-size: 1.05rem; font-weight: 700;">System Overview &amp; Verification Metrics</h3>
+        <p style="font-size: 0.8rem; color: var(--text-secondary);">Summary of loaded database records, validation rules, and active session privileges.</p>
+        
+        <div class="cards-grid" style="margin-top: 1rem;">
+          <div class="group-card">
+            <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">ACTIVE USERS POPULATED</span>
+            <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary);" id="metricUserCount">300</div>
+            <span style="font-size: 0.75rem; color: var(--text-secondary);">Authentic Czech &amp; Slovak profiles with mandatory unified phone numbers (+420 / +421).</span>
+          </div>
+
+          <div class="group-card">
+            <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">GROUPS &amp; ROLES</span>
+            <div style="font-size: 1.8rem; font-weight: 800; color: var(--warning);" id="metricGroupCount">20</div>
+            <span style="font-size: 0.75rem; color: var(--text-secondary);">Across Schools, Teachers, Alumni, Testers, Supervisors L1-L3, and Super Users.</span>
+          </div>
+
+          <div class="group-card">
+            <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">HIERARCHICAL NODES</span>
+            <div style="font-size: 1.8rem; font-weight: 800; color: var(--success);" id="metricHierarchyCount">53</div>
+            <span style="font-size: 0.75rem; color: var(--text-secondary);">16 Czech &amp; Slovak regions, 15 educational organizations, 22 sub-organizations.</span>
+          </div>
+
+          <div class="group-card">
+            <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">RCS ALERT TYPES</span>
+            <div style="font-size: 1.8rem; font-weight: 800; color: var(--info);">10 Categories</div>
+            <span style="font-size: 0.75rem; color: var(--text-secondary);">Strict rule: at least 1 category selected or marked as disallowed.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-time Event Audit Log Table -->
+      <div class="table-responsive" style="margin-top: 1.5rem;">
+        <div style="padding: 0.85rem 1.25rem; font-weight: 700; font-size: 0.9rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+          <span>Live Identity &amp; Privilege Event Audit Trail</span>
+          <button class="btn btn-outline btn-sm" id="btnClearAuditLogs">Clear Audit Logs</button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Actor</th>
+              <th>Action Category</th>
+              <th>Entity Affected</th>
+              <th>Result / Scope Status</th>
+            </tr>
+          </thead>
+          <tbody id="auditLogsTableBody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================================================================
+       MODAL 1: CREATE / EDIT USER
+       ====================================================================== -->
+  <div class="modal-backdrop" id="modalUser">
+    <div class="modal-dialog lg">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalUserTitle">Create New User</h3>
+        <button class="btn btn-ghost btn-sm btn-icon-only modal-close-btn" data-close="modalUser">&times;</button>
+      </div>
+      <form id="formUser">
+        <div class="modal-body">
+          <input type="hidden" id="userIdInput">
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">First Name <span class="req">*</span></label>
+              <input type="text" class="form-control" id="userFirstName" required placeholder="e.g. Peter or Eliška">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Last Name <span class="req">*</span></label>
+              <input type="text" class="form-control" id="userLastName" required placeholder="e.g. Kováč or Procházková">
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Email Address <span class="req">*</span></label>
+              <input type="email" class="form-control" id="userEmail" required placeholder="peter.kovac@uniba.sk">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Username <span class="req">*</span></label>
+              <input type="text" class="form-control" id="userUsername" required placeholder="peter.kovac">
+            </div>
+          </div>
+
+          <!-- Mandatory Unified Phone Number Field -->
+          <div class="form-group" style="background: var(--bg-muted); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+            <label class="form-label" style="display: flex; justify-content: space-between;">
+              <span>Phone Number (Mandatory Unified Format) <span class="req">*</span></span>
+              <span style="font-size: 0.725rem; color: var(--primary); font-weight: 600;">Standard: +420 XXX XXX XXX or +421 XXX XXX XXX</span>
+            </label>
+            <input type="tel" class="form-control phone-formatted" id="userPhone" required placeholder="+421 905 123 456" autocomplete="tel">
+            <small style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem;">
+              Area code must be specified (+420 for Czech Republic or +421 for Slovakia). Automatically formatted as you type.
+            </small>
+          </div>
+
+          <!-- Hierarchy & Group Assignment -->
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label">Country &amp; Region <span class="req">*</span></label>
+              <select class="form-control" id="userRegionSelect" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Organization <span class="req">*</span></label>
+              <select class="form-control" id="userOrgSelect" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Sub-organization</label>
+              <select class="form-control" id="userSubOrgSelect">
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Group Assignment <span class="req">*</span></label>
+              <select class="form-control" id="userGroupSelect" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Account Status <span class="req">*</span></label>
+              <select class="form-control" id="userStatusSelect" required>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="suspended">Suspended</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Personal Information Accordion / Section -->
+          <div style="border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
+            <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.5rem;">
+              Personal Information (Protected by Privacy Privileges)
+            </h4>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label">Date of Birth</label>
+                <input type="date" class="form-control" id="userDob" value="1988-05-14">
+              </div>
+              <div class="form-group">
+                <label class="form-label">National ID / Rodné číslo</label>
+                <input type="text" class="form-control" id="userNationalId" placeholder="880514/1234">
+              </div>
+            </div>
+            <div class="form-group" style="margin-top: 0.5rem;">
+              <label class="form-label">Residential Address</label>
+              <input type="text" class="form-control" id="userAddress" placeholder="Obchodná 15, 811 06 Bratislava">
+            </div>
+            <div class="form-group" style="margin-top: 0.5rem;">
+              <label class="form-label">Emergency Contact Phone &amp; Relationship</label>
+              <input type="text" class="form-control" id="userEmergencyContact" placeholder="+421 903 555 111 (Spouse)">
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-close-btn" data-close="modalUser">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveUser">Save User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL 2: CREATE / EDIT GROUP & PRIVILEGES
+       ====================================================================== -->
+  <div class="modal-backdrop" id="modalGroup">
+    <div class="modal-dialog lg">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalGroupTitle">Create New Group</h3>
+        <button class="btn btn-ghost btn-sm btn-icon-only modal-close-btn" data-close="modalGroup">&times;</button>
+      </div>
+      <form id="formGroup">
+        <div class="modal-body">
+          <input type="hidden" id="groupIdInput">
+
+          <!-- Auto-Naming Suggestion Banner -->
+          <div style="background: var(--primary-light); border: 1px solid hsla(var(--primary-hue), var(--primary-sat), var(--primary-lit), 0.3); border-radius: var(--radius-md); padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+            <div>
+              <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary);">Smart Auto-Naming &amp; Codename Generator</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary);">Suggests standard names or military-grade codenames based on your privilege selections.</div>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" id="btnAutoSuggestGroupName">
+              ✨ Suggest Name
+            </button>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Group Name <span class="req">*</span></label>
+              <input type="text" class="form-control" id="groupNameInput" required placeholder="e.g. Regional Academic Evaluators">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Codename <span class="req">*</span></label>
+              <input type="text" class="form-control" id="groupCodenameInput" required placeholder="e.g. EVAL-REGIONAL">
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Category <span class="req">*</span></label>
+              <select class="form-control" id="groupCategoryInput" required>
+                <option value="Schools">Schools</option>
+                <option value="Teachers">Teachers</option>
+                <option value="Alumni">Alumni</option>
+                <option value="Testers">Testers</option>
+                <option value="Supervisors of different levels">Supervisors of different levels</option>
+                <option value="Super Users">Super Users</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Group Description</label>
+              <input type="text" class="form-control" id="groupDescInput" placeholder="Scope, responsibilities, and operational duties...">
+            </div>
+          </div>
+
+          <!-- Scope Restrictions for Group -->
+          <div class="privilege-block">
+            <div class="privilege-block-title">
+              <span>Geographic &amp; Institutional Scope Restrictions</span>
+              <span class="badge badge-neutral">Rule 5 Enforcement</span>
+            </div>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label">Country Restriction</label>
+                <select class="form-control" id="groupScopeCountry">
+                  <option value="ALL">All Countries (Unrestricted)</option>
+                  <option value="CZ">Czech Republic Only (CZ)</option>
+                  <option value="SK">Slovakia Only (SK)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Region Restriction</label>
+                <select class="form-control" id="groupScopeRegion">
+                  <option value="ALL">All Regions</option>
+                  <!-- Populated dynamically -->
+                </select>
+              </div>
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label">Organization Restriction</label>
+                <select class="form-control" id="groupScopeOrg">
+                  <option value="ALL">All Organizations</option>
+                  <!-- Populated dynamically -->
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Sub-organization Restriction</label>
+                <select class="form-control" id="groupScopeSubOrg">
+                  <option value="ALL">All Sub-organizations</option>
+                  <!-- Populated dynamically -->
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Duplicate Privilege Warning Alert (shown when identical privileges found) -->
+          <div id="duplicatePrivilegeAlert" style="display: none; background: var(--danger-bg); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: var(--radius-md); padding: 0.75rem 1rem; color: var(--danger); font-size: 0.8rem;">
+            <strong>⚠️ Duplicate Privileges Detected!</strong>
+            <span id="duplicatePrivilegeMsg">Another group already possesses this exact set of privileges. Group creation is blocked to prevent redundant security policies.</span>
+          </div>
+
+          <!-- Granular Privileges: Group Management -->
+          <div class="privilege-block">
+            <div class="privilege-block-title">
+              <span>1. Group Management Privileges</span>
+              <button type="button" class="btn btn-ghost btn-sm select-all-btn" data-target="grp-priv-group">Select All</button>
+            </div>
+            <div class="privilege-checkboxes-grid" id="grp-priv-group">
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="create_group"> Create groups</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="edit_group"> Edit / Rename groups</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="disable_group"> Disable groups</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="delete_group"> Delete groups</label>
+            </div>
+          </div>
+
+          <!-- Granular Privileges: User Management -->
+          <div class="privilege-block">
+            <div class="privilege-block-title">
+              <span>2. User Management Privileges</span>
+              <button type="button" class="btn btn-ghost btn-sm select-all-btn" data-target="grp-priv-user">Select All</button>
+            </div>
+            <div class="privilege-checkboxes-grid" id="grp-priv-user">
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="create_user"> Create users</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="edit_user"> Edit users</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="disable_user"> Disable users</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="delete_user"> Delete users</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="bulk_edit_users"> 3.1 Bulk edit users</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="import_users"> 3.2 Import XLS / CSV users</label>
+            </div>
+          </div>
+
+          <!-- Granular Privileges: Hierarchy Management -->
+          <div class="privilege-block">
+            <div class="privilege-block-title">
+              <span>4. Hierarchy Management Privileges</span>
+              <button type="button" class="btn btn-ghost btn-sm select-all-btn" data-target="grp-priv-hierarchy">Select All</button>
+            </div>
+            <div class="privilege-checkboxes-grid" id="grp-priv-hierarchy">
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="manage_regions"> 4.0 Add / Edit / Disable / Remove Regions</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="manage_organizations"> 4.1 Add / Edit / Disable / Remove Organizations</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="manage_sub_organizations"> 4.2 Add / Edit / Disable / Remove Sub-organizations</label>
+            </div>
+          </div>
+
+          <!-- Granular Privileges: Personal Information & Password -->
+          <div class="privilege-block">
+            <div class="privilege-block-title">
+              <span>6. Personal Information &amp; Password Privileges</span>
+              <button type="button" class="btn btn-ghost btn-sm select-all-btn" data-target="grp-priv-personal">Select All</button>
+            </div>
+            <div class="privilege-checkboxes-grid" id="grp-priv-personal">
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="view_others_personal"> 6.0 See personal info of other users</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="edit_others_personal"> 6.2 Edit personal info of other users</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="edit_own_personal"> 6.3 Edit own personal info</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="change_password"> 6.5 Change password</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="choose_or_generated_password"> 6.6 Choose own or generated password</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="retrieve_forgotten_password"> 6.7 Retrieve forgotten password</label>
+            </div>
+          </div>
+
+          <!-- Granular Privileges: 7. RCS Trigger Privileges -->
+          <div class="privilege-block">
+            <div class="privilege-block-title">
+              <span>7. RCS Trigger Privileges (Dispatch Messages)</span>
+              <label class="checkbox-label" style="font-weight: 600;">
+                <input type="checkbox" class="custom-checkbox" id="rcsTriggerAllowedCheck"> Allow Group to Trigger RCS
+              </label>
+            </div>
+            <div id="rcsTriggerOptionsBlock" style="display: none; flex-direction: column; gap: 0.5rem;">
+              <div style="display: flex; gap: 1rem;">
+                <label class="checkbox-label">
+                  <input type="radio" name="rcsTriggerMode" value="ALL" id="rcsTriggerAllRadio" checked> All Message Types
+                </label>
+                <label class="checkbox-label">
+                  <input type="radio" name="rcsTriggerMode" value="SOME" id="rcsTriggerSomeRadio"> Specific Categories (at least 1 required)
+                </label>
+              </div>
+              <div id="rcsTriggerTypesList" class="rcs-type-pills" style="display: none;">
+                <!-- 10 pills -->
+              </div>
+              <small id="rcsTriggerWarning" style="color: var(--danger); font-size: 0.725rem; display: none;">
+                ⚠️ At least 1 message category must be selected, otherwise marked as not allowed.
+              </small>
+            </div>
+          </div>
+
+          <!-- Granular Privileges: 8. RCS Receive Privileges -->
+          <div class="privilege-block">
+            <div class="privilege-block-title">
+              <span>8. RCS Receive Privileges (Inbound Messages)</span>
+              <label class="checkbox-label" style="font-weight: 600;">
+                <input type="checkbox" class="custom-checkbox" id="rcsReceiveAllowedCheck"> Allow Group to Receive RCS
+              </label>
+            </div>
+            <div id="rcsReceiveOptionsBlock" style="display: none; flex-direction: column; gap: 0.5rem;">
+              <div style="display: flex; gap: 1rem;">
+                <label class="checkbox-label">
+                  <input type="radio" name="rcsReceiveMode" value="ALL" id="rcsReceiveAllRadio" checked> All Message Types
+                </label>
+                <label class="checkbox-label">
+                  <input type="radio" name="rcsReceiveMode" value="SOME" id="rcsReceiveSomeRadio"> Specific Categories (at least 1 required)
+                </label>
+              </div>
+              <div id="rcsReceiveTypesList" class="rcs-type-pills" style="display: none;">
+                <!-- 10 pills -->
+              </div>
+              <small id="rcsReceiveWarning" style="color: var(--danger); font-size: 0.725rem; display: none;">
+                ⚠️ At least 1 message category must be selected, otherwise marked as not allowed.
+              </small>
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-close-btn" data-close="modalGroup">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveGroup">Save Group</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL 3: IMPORT USERS CSV / XLS
+       ====================================================================== -->
+  <div class="modal-backdrop" id="modalImport">
+    <div class="modal-dialog lg">
+      <div class="modal-header">
+        <h3 class="modal-title">Import Users (CSV / XLS Format)</h3>
+        <button class="btn btn-ghost btn-sm btn-icon-only modal-close-btn" data-close="modalImport">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.8rem; color: var(--text-secondary);">
+          Upload a user roster CSV or XLS. Mandatory unified phone number format (+420 / +421) is strictly validated on every row.
+        </p>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Target Group for Imported Users <span class="req">*</span></label>
+            <select class="form-control" id="importTargetGroup">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+          <div style="display: flex; align-items: flex-end;">
+            <button type="button" class="btn btn-outline btn-sm" id="btnDownloadSampleCsv">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              <span>Download Sample CSV Template</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="dropzone" id="csvDropzone">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="color: var(--primary); margin-bottom: 0.5rem;">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <line x1="9" y1="15" x2="12" y2="12"/>
+            <line x1="15" y1="15" x2="12" y2="12"/>
+          </svg>
+          <div style="font-weight: 600; font-size: 0.9rem;">Drag &amp; drop your CSV or XLS file here</div>
+          <div style="font-size: 0.775rem; color: var(--text-muted); margin-top: 0.25rem;">or click to browse from your computer</div>
+          <input type="file" id="csvFileInput" accept=".csv,.txt,.tsv" style="display: none;">
+        </div>
+
+        <div id="importPreviewContainer" style="display: none;">
+          <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+            <span>Preview &amp; Validation (<span id="importValidCount">0</span> Valid, <span id="importInvalidCount">0</span> Errors)</span>
+          </div>
+          <div class="table-responsive" style="max-height: 220px; overflow-y: auto;">
+            <table class="data-table" id="importPreviewTable">
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Mandatory Phone</th>
+                  <th>Region / Org</th>
+                  <th>Errors</th>
+                </tr>
+              </thead>
+              <tbody id="importPreviewTableBody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary modal-close-btn" data-close="modalImport">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btnCommitImport" disabled>Commit Import</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL 4: BULK EDIT USERS
+       ====================================================================== -->
+  <div class="modal-backdrop" id="modalBulkEdit">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Bulk Edit Users (<span id="bulkModalCount">0</span> Selected)</h3>
+        <button class="btn btn-ghost btn-sm btn-icon-only modal-close-btn" data-close="modalBulkEdit">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Batch Update Group</label>
+          <select class="form-control" id="bulkUpdateGroup">
+            <option value="NO_CHANGE">— Keep Existing Groups —</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Batch Update Account Status</label>
+          <select class="form-control" id="bulkUpdateStatus">
+            <option value="NO_CHANGE">— Keep Existing Statuses —</option>
+            <option value="active">Set Active</option>
+            <option value="inactive">Set Inactive</option>
+            <option value="suspended">Set Suspended</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Batch Reassign Organization</label>
+          <select class="form-control" id="bulkUpdateOrg">
+            <option value="NO_CHANGE">— Keep Existing Organizations —</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary modal-close-btn" data-close="modalBulkEdit">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btnApplyBulkEdit">Apply Bulk Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL 5: PASSWORD MANAGEMENT (6.5 / 6.6 / 6.7)
+       ====================================================================== -->
+  <div class="modal-backdrop" id="modalPassword">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="pwdModalTitle">Manage Password for Jan Novák</h3>
+        <button class="btn btn-ghost btn-sm btn-icon-only modal-close-btn" data-close="modalPassword">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="pwdTargetUserId">
+
+        <div style="display: flex; gap: 0.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 0.75rem;">
+          <button type="button" class="btn btn-sm btn-primary pwd-tab-btn" data-pwd-mode="change">Choose Own Password</button>
+          <button type="button" class="btn btn-sm btn-outline pwd-tab-btn" data-pwd-mode="generate">Generate Secure</button>
+          <button type="button" class="btn btn-sm btn-ghost pwd-tab-btn" data-pwd-mode="retrieve">Retrieve Forgotten</button>
+        </div>
+
+        <!-- Mode 1: Choose Own Password -->
+        <div id="pwdModeChange" class="pwd-mode-view">
+          <div class="form-group">
+            <label class="form-label">New Password</label>
+            <input type="password" class="form-control" id="customPwdInput" placeholder="Min. 8 characters with numbers & symbols">
+            <!-- Strength Meter -->
+            <div style="height: 4px; background: var(--bg-muted); border-radius: 2px; margin-top: 0.35rem; overflow: hidden;">
+              <div id="pwdStrengthBar" style="height: 100%; width: 0%; background: var(--danger); transition: all 0.2s;"></div>
+            </div>
+            <div id="pwdStrengthText" style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem;">Strength: Enter password</div>
+          </div>
+          <div class="form-group" style="margin-top: 0.75rem;">
+            <label class="form-label">Confirm New Password</label>
+            <input type="password" class="form-control" id="customPwdConfirm" placeholder="Repeat new password">
+          </div>
+        </div>
+
+        <!-- Mode 2: Generate Secure Password -->
+        <div id="pwdModeGenerate" class="pwd-mode-view" style="display: none;">
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+            Generate an entropy-secure 16-character alphanumeric password with special characters.
+          </p>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <input type="text" class="form-control" id="generatedPwdInput" readonly style="font-family: var(--font-mono); font-weight: 700; color: var(--primary);">
+            <button type="button" class="btn btn-secondary btn-sm" id="btnRegeneratePwd">🎲 Re-roll</button>
+            <button type="button" class="btn btn-outline btn-sm" id="btnCopyGeneratedPwd">📋 Copy</button>
+          </div>
+        </div>
+
+        <!-- Mode 3: Retrieve Forgotten Password -->
+        <div id="pwdModeRetrieve" class="pwd-mode-view" style="display: none;">
+          <div style="background: var(--info-bg); border: 1px solid rgba(2, 132, 199, 0.3); border-radius: var(--radius-md); padding: 0.85rem; font-size: 0.8rem; color: var(--info);">
+            <strong>RCS / SMS Password Recovery Flow (Rule 6.7)</strong>
+            <p style="margin-top: 0.25rem;">
+              Simulates sending a one-time OTP recovery code to the user's mandatory phone number.
+            </p>
+          </div>
+          <div class="form-group" style="margin-top: 0.75rem;">
+            <label class="form-label">Registered Mandatory Phone</label>
+            <input type="text" class="form-control" id="recoveryPhoneDisplay" readonly>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnSendRecoveryOtp" style="margin-top: 0.5rem;">
+            📲 Send Recovery Code via RCS
+          </button>
+          <div id="recoveryOtpSentNotice" style="display: none; margin-top: 0.5rem; color: var(--success); font-size: 0.8rem;">
+            ✅ Recovery code sent to device! Simulated token: <strong>849-201</strong>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary modal-close-btn" data-close="modalPassword">Close</button>
+        <button type="button" class="btn btn-primary" id="btnApplyPasswordChange">Save Password</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL 6: HIERARCHY ADD/EDIT (REGION, ORG, SUB-ORG)
+       ====================================================================== -->
+  <div class="modal-backdrop" id="modalHierarchy">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="hierarchyModalTitle">Add Institutional Unit</h3>
+        <button class="btn btn-ghost btn-sm btn-icon-only modal-close-btn" data-close="modalHierarchy">&times;</button>
+      </div>
+      <form id="formHierarchy">
+        <div class="modal-body">
+          <input type="hidden" id="hierarchyLevelType" value="org">
+          <input type="hidden" id="hierarchyItemId">
+
+          <div class="form-group" id="hierarchyParentGroup">
+            <label class="form-label" id="hierarchyParentLabel">Parent Entity</label>
+            <select class="form-control" id="hierarchyParentSelect">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Entity Name <span class="req">*</span></label>
+            <input type="text" class="form-control" id="hierarchyName" required placeholder="e.g. Univerzita Komenského">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Code / Abbreviation <span class="req">*</span></label>
+            <input type="text" class="form-control" id="hierarchyCode" required placeholder="e.g. UNIBA">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-control" id="hierarchyStatus">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive / Disabled</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-close-btn" data-close="modalHierarchy">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveHierarchy">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL 7: PERSONA / USER SWITCHER (FOR TESTING PURPOSES)
+       ====================================================================== -->
+  <div class="modal-backdrop" id="modalPersonaSwitcher">
+    <div class="modal-dialog lg">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="background: #f59e0b; color: #000; font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.4rem; border-radius: 4px;">TESTING ONLY</span>
+          <h3 class="modal-title">Simulate Session as Different User</h3>
+        </div>
+        <button class="btn btn-ghost btn-sm btn-icon-only modal-close-btn" data-close="modalPersonaSwitcher">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.8rem; color: var(--text-secondary);">
+          Select any user from the 300 Czech &amp; Slovak dataset to test their specific privilege sets, hierarchy restrictions, and RCS capabilities.
+        </p>
+
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label class="form-label">Filter by Country</label>
+            <select class="form-control" id="personaFilterCountry">
+              <option value="ALL">All Countries</option>
+              <option value="CZ">Czech Republic 🇨🇿</option>
+              <option value="SK">Slovakia 🇸🇰</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Filter by Group</label>
+            <select class="form-control" id="personaFilterGroup">
+              <option value="ALL">All Groups</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Filter by Organization</label>
+            <select class="form-control" id="personaFilterOrg">
+              <option value="ALL">All Organizations</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+          <input type="text" class="form-control" id="personaSearchInput" placeholder="Quick search user name..." style="max-width: 320px;">
+          <button type="button" class="btn btn-warning btn-sm" id="btnPickRandomFilteredUser">
+            🎲 Pick Random User from Filter
+          </button>
+        </div>
+
+        <div class="table-responsive" style="max-height: 280px; overflow-y: auto; margin-top: 0.5rem;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Group</th>
+                <th>Scope Restriction</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="personaListTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary modal-close-btn" data-close="modalPersonaSwitcher">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       REBRAND & CUSTOMIZATION DRAWER
+       ====================================================================== -->
+  <div class="drawer-backdrop" id="rebrandDrawerBackdrop"></div>
+  <aside class="drawer-panel" id="rebrandDrawer">
+    <div class="modal-header">
+      <div>
+        <h3 class="modal-title">Rebranding &amp; Themes</h3>
+        <p style="font-size: 0.75rem; color: var(--text-muted);">Dynamically rebrand colors, typography &amp; layout radii</p>
+      </div>
+      <button class="btn btn-ghost btn-sm btn-icon-only" id="btnCloseRebrand">&times;</button>
+    </div>
+    <div class="modal-body">
+      
+      <!-- Preset Color Schemes -->
+      <div class="form-group">
+        <label class="form-label">Curated Color Palettes</label>
+        <div class="color-presets-grid" id="colorPresetsGrid">
+          <!-- Preset buttons -->
+        </div>
+      </div>
+
+      <!-- Custom Primary Color Picker -->
+      <div class="form-group">
+        <label class="form-label">Custom Primary Brand Color</label>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <input type="color" id="customColorPicker" value="#2563eb" style="width: 44px; height: 38px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); cursor: pointer; padding: 2px; background: var(--bg-surface);">
+          <input type="text" class="form-control" id="customColorHex" value="#2563eb" style="font-family: var(--font-mono); font-size: 0.85rem;">
+        </div>
+      </div>
+
+      <!-- Font Family Selector -->
+      <div class="form-group">
+        <label class="form-label">Typography (Google Fonts)</label>
+        <select class="form-control" id="fontFamilySelect">
+          <option value="'Inter', -apple-system, sans-serif">Inter (Modern &amp; Balanced)</option>
+          <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans (Crisp &amp; Geometric)</option>
+          <option value="'Outfit', sans-serif">Outfit (Contemporary &amp; Minimal)</option>
+          <option value="'Space Grotesk', sans-serif">Space Grotesk (Tech &amp; Precision)</option>
+          <option value="system-ui, -apple-system, sans-serif">System Default</option>
+        </select>
+      </div>
+
+      <!-- Border Radius Scale -->
+      <div class="form-group">
+        <label class="form-label">Corner Radius Geometry</label>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;">
+          <button type="button" class="btn btn-outline btn-sm radius-btn" data-radius="sharp">Sharp (0px)</button>
+          <button type="button" class="btn btn-outline btn-sm radius-btn" data-radius="subtle">Subtle (6px)</button>
+          <button type="button" class="btn btn-outline btn-sm radius-btn active" data-radius="smooth">Smooth (10px)</button>
+          <button type="button" class="btn btn-outline btn-sm radius-btn" data-radius="pill">Pill (20px)</button>
+        </div>
+      </div>
+
+      <!-- Quick Export / Reset -->
+      <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+        <button type="button" class="btn btn-secondary btn-sm" id="btnResetBrandDefaults">
+          Reset to Factory Theme
+        </button>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- ======================================================================
+       FLOATING TESTING PANEL
+       "FOR TESTING PURPOSES ONLY"
+       Draggable, Minimizable, Distinct Warning/Amber Color Scheme
+       ====================================================================== -->
+  <aside class="floating-test-panel" id="floatingTestPanel" style="top: 100px; right: 24px;">
+    <!-- Draggable Header -->
+    <div class="test-panel-header" id="testPanelHeader">
+      <div class="test-panel-title">
+        <span>⚠️ TESTING SIMULATOR</span>
+      </div>
+      <div class="test-panel-controls">
+        <button type="button" class="test-panel-btn" id="btnMinimizeTestPanel" title="Minimize / Expand Panel">−</button>
+        <button type="button" class="test-panel-btn" id="btnToggleTestPanelVisibility" title="Close Panel">✕</button>
+      </div>
+    </div>
+
+    <!-- Drag Hint Indicator -->
+    <div class="test-panel-drag-hint" style="background: #27272a; color: #a1a1aa; font-size: 0.65rem; text-align: center; padding: 0.15rem; letter-spacing: 0.05em;">
+      ⠿ CLICK &amp; DRAG ANYWHERE ON SCREEN ⠿
+    </div>
+
+    <!-- Panel Body -->
+    <div class="test-panel-body">
+      <!-- Active Persona Breakdown -->
+      <div class="test-active-user-box">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <span class="test-badge-user" id="testPanelUserName">Jan Novák</span>
+          <span class="badge badge-warning" id="testPanelGroupCode">NEXUS-OMNI</span>
+        </div>
+        <div class="test-badge-group" id="testPanelGroupName">Super Administrators (God Mode)</div>
+        <div class="test-badge-scope" id="testPanelScopeText">Scope: Global Unrestricted</div>
+      </div>
+
+      <!-- Simulator Action Controls -->
+      <div class="test-panel-actions">
+        <!-- God Mode / Super User Triangle Eye Icon -->
+        <button type="button" class="btn-test-action btn-god-test" id="btnGodModeTestPanel" title="Super User with all privileges">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 2 22 22 22 12 2"/>
+            <circle cx="12" cy="14" r="3.2"/>
+            <circle cx="12" cy="14" r="1.2" fill="currentColor"/>
+          </svg>
+          <span>God Mode (All Privileges)</span>
+        </button>
+
+        <button type="button" class="btn-test-action" id="btnSwitchPersonaTestPanel">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="8.5" cy="7" r="4"/>
+          </svg>
+          <span>Choose Other User</span>
+        </button>
+
+        <button type="button" class="btn-test-action" id="btnRandomUserTestPanel">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+            <path d="M16 8h.01"/>
+            <path d="M8 8h.01"/>
+            <path d="M8 16h.01"/>
+            <path d="M16 16h.01"/>
+            <path d="M12 12h.01"/>
+          </svg>
+          <span>Random User</span>
+        </button>
+      </div>
+
+      <!-- Live Privileges Audit for Active Persona -->
+      <div class="test-perms-preview">
+        <div style="font-weight: 700; color: #f8fafc; display: flex; justify-content: space-between;">
+          <span>Active Persona Permissions</span>
+          <span id="testPermsCount">All Granted</span>
+        </div>
+        <div class="test-perms-list" id="testPermsList">
+          <!-- Dynamically generated pills of granted / denied privileges -->
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Minimized Floating Dock Button (shown when panel is closed or minimized) -->
+  <button id="floatingTestDockBtn" style="display: none; position: fixed; bottom: 24px; right: 24px; background: #0f172a; color: #fbbf24; border: 2px solid #f59e0b; border-radius: 9999px; padding: 0.5rem 1rem; font-size: 0.8rem; font-weight: 700; box-shadow: var(--shadow-xl); z-index: 79; cursor: pointer; display: none; align-items: center; gap: 0.5rem;">
+    <span>🧪 Testing Simulator</span>
+    <span class="badge badge-warning" id="dockUserShort">Jan Novák</span>
+  </button>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

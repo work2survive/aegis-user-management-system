@@ -628,10 +628,10 @@
       const canDisable = hasPrivilege('disable_user') && !isSelf;
       const canChangePwd = isSelf ? hasPrivilege('change_password') : (hasPrivilege('change_password') && hasPrivilege('edit_others_personal'));
 
-      // Privacy masks on personal details: names, emails, phones
+      // Privacy masks on personal details: names & emails (phone numbers are always visible)
       const displayName = maskSensitiveName(user, isSelf);
       const displayEmail = maskSensitiveEmail(user, isSelf);
-      const maskedPhone = maskSensitive(user.phone, isSelf);
+      const phoneDisplay = user.phone; // Mandatory phone numbers are always visible
 
       const avatarContent = canViewPersonal ? 
         `${user.firstName[0]}${user.lastName[0]}` : 
@@ -654,7 +654,7 @@
             </div>
           </td>
           <td>
-            <span class="phone-formatted">${maskedPhone}</span>
+            <span class="phone-formatted">${phoneDisplay}</span>
           </td>
           <td>
             <span class="badge badge-primary" title="${group.name}">${group.codeName}</span>

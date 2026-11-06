@@ -624,6 +624,18 @@
       return;
     }
 
+    const canCreateUser = hasPrivilege('create_user');
+    const canImportUsers = hasPrivilege('import_users');
+    const canBulkEdit = hasPrivilege('bulk_edit_users');
+
+    const btnCreateUser = document.getElementById('btnOpenCreateUser');
+    const btnImport = document.getElementById('btnOpenImportUsers');
+    const chkSelectAll = document.getElementById('checkSelectAllUsers');
+
+    if (btnCreateUser) btnCreateUser.style.display = canCreateUser ? 'inline-flex' : 'none';
+    if (btnImport) btnImport.style.display = canImportUsers ? 'inline-flex' : 'none';
+    if (chkSelectAll) chkSelectAll.style.display = canBulkEdit ? 'inline-block' : 'none';
+
     tableBody.innerHTML = pageUsers.map(user => {
       const isSelected = selectedUserIds.has(user.id);
       const group = DB.groups.find(g => g.id === user.groupId) || { name: 'Unknown', codeName: 'N/A' };
@@ -652,10 +664,47 @@
 
       const avatarStyle = canViewPersonal ? '' : 'background: var(--bg-muted); color: var(--text-muted); border: 1px solid var(--border-color);';
 
+      // Action buttons: completely hide buttons that the user is not allowed to use
+      const actions = [];
+      if (canEdit) {
+        actions.push(`
+          <button class="btn btn-outline btn-sm btn-icon-only btn-action-edit" data-id="${user.id}" title="Edit User Details">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </button>
+        `);
+      }
+      if (canChangePwd) {
+        actions.push(`
+          <button class="btn btn-outline btn-sm btn-icon-only btn-action-pwd" data-id="${user.id}" title="Manage Password">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </button>
+        `);
+      }
+      if (canDisable) {
+        actions.push(`
+          <button class="btn btn-outline btn-sm btn-icon-only btn-action-status" data-id="${user.id}" title="${user.status === 'active' ? 'Disable User' : 'Enable User'}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          </button>
+        `);
+      }
+      if (canDelete) {
+        actions.push(`
+          <button class="btn btn-outline btn-sm btn-icon-only btn-action-delete" data-id="${user.id}" title="Delete User" style="color: var(--danger);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        `);
+      }
+
+      const actionsCell = actions.length > 0 ? `
+        <div style="display: inline-flex; gap: 0.35rem;">
+          ${actions.join('')}
+        </div>
+      ` : `<span style="color: var(--text-muted); font-size: 0.75rem;">—</span>`;
+
       return `
         <tr class="${isSelected ? 'selected' : ''}" data-id="${user.id}">
           <td>
-            <input type="checkbox" class="custom-checkbox user-row-check" data-id="${user.id}" ${isSelected ? 'checked' : ''} ${!hasPrivilege('bulk_edit_users') ? 'disabled' : ''}>
+            ${canBulkEdit ? `<input type="checkbox" class="custom-checkbox user-row-check" data-id="${user.id}" ${isSelected ? 'checked' : ''}>` : ''}
           </td>
           <td>
             <div class="cell-user-info">
@@ -686,20 +735,7 @@
             <span style="text-transform: capitalize; font-size: 0.8rem;">${user.status}</span>
           </td>
           <td style="text-align: right; white-space: nowrap;">
-            <div style="display: inline-flex; gap: 0.35rem;">
-              <button class="btn btn-outline btn-sm btn-icon-only btn-action-edit" data-id="${user.id}" title="${canEdit ? 'Edit User Details' : 'View User Details'}">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-              </button>
-              <button class="btn btn-outline btn-sm btn-icon-only btn-action-pwd" data-id="${user.id}" title="Manage Password (6.5 / 6.6 / 6.7)" ${!canChangePwd ? 'disabled' : ''}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              </button>
-              <button class="btn btn-outline btn-sm btn-icon-only btn-action-status" data-id="${user.id}" title="${user.status === 'active' ? 'Disable User' : 'Enable User'}" ${!canDisable ? 'disabled' : ''}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-              </button>
-              <button class="btn btn-outline btn-sm btn-icon-only btn-action-delete" data-id="${user.id}" title="Delete User" ${!canDelete ? 'disabled' : ''} style="color: var(--danger);">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-              </button>
-            </div>
+            ${actionsCell}
           </td>
         </tr>
       `;
@@ -801,6 +837,10 @@
     const metricCount = document.getElementById('metricGroupCount');
     if (metricCount) metricCount.textContent = groups.length;
 
+    const canCreateGrp = hasPrivilege('create_group');
+    const btnCreateGrp = document.getElementById('btnOpenCreateGroup');
+    if (btnCreateGrp) btnCreateGrp.style.display = canCreateGrp ? 'inline-flex' : 'none';
+
     container.innerHTML = groups.map(grp => {
       const userCount = DB.users.filter(u => u.groupId === grp.id).length;
       const canEditGrp = hasPrivilege('edit_group');
@@ -834,6 +874,38 @@
       const rcsRecv = grp.privileges.rcs_receive?.allowed ? 
         (grp.privileges.rcs_receive.allow_all ? 'Receive: All' : `Receive: ${grp.privileges.rcs_receive.types?.length || 0} types`) : 'Receive: None';
 
+      const groupActions = [];
+      if (canEditGrp) {
+        groupActions.push(`
+          <button class="btn btn-outline btn-sm btn-edit-group" data-id="${grp.id}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            <span>Edit</span>
+          </button>
+        `);
+      }
+      if (canDisableGrp) {
+        groupActions.push(`
+          <button class="btn btn-outline btn-sm btn-icon-only btn-toggle-group-status" data-id="${grp.id}" title="${grp.status === 'active' ? 'Disable Group' : 'Enable Group'}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          </button>
+        `);
+      }
+      if (canDeleteGrp) {
+        groupActions.push(`
+          <button class="btn btn-outline btn-sm btn-icon-only btn-delete-group" data-id="${grp.id}" title="Delete Group" style="color: var(--danger);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+          </button>
+        `);
+      }
+
+      const footerHtml = groupActions.length > 0 ? `
+        <div class="group-card-footer">
+          <div style="display: flex; gap: 0.35rem; width: 100%; justify-content: flex-end;">
+            ${groupActions.join('')}
+          </div>
+        </div>
+      ` : '';
+
       return `
         <div class="group-card" data-id="${grp.id}">
           <div class="group-card-header">
@@ -857,20 +929,7 @@
             <div><strong>RCS Capabilities:</strong> ${rcsTrig} | ${rcsRecv}</div>
           </div>
 
-          <div class="group-card-footer">
-            <button class="btn btn-outline btn-sm btn-edit-group" data-id="${grp.id}" ${!canEditGrp ? 'disabled' : ''}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-              <span>Edit</span>
-            </button>
-            <div style="display: flex; gap: 0.35rem;">
-              <button class="btn btn-outline btn-sm btn-icon-only btn-toggle-group-status" data-id="${grp.id}" title="${grp.status === 'active' ? 'Disable' : 'Enable'}" ${!canDisableGrp ? 'disabled' : ''}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-              </button>
-              <button class="btn btn-outline btn-sm btn-icon-only btn-delete-group" data-id="${grp.id}" title="Delete Group" ${!canDeleteGrp ? 'disabled' : ''} style="color: var(--danger);">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
-              </button>
-            </div>
-          </div>
+          ${footerHtml}
         </div>
       `;
     }).join('');
@@ -913,23 +972,14 @@
     const canDisableSub = hasPrivilege('disable_sub_organization') || hasPrivilege('manage_sub_organizations');
     const canDeleteSub = hasPrivilege('delete_sub_organization') || hasPrivilege('manage_sub_organizations');
 
-    // Synchronize top action toolbar buttons
+    // Synchronize top action toolbar buttons (completely hide if not allowed)
     const btnAddReg = document.getElementById('btnAddRegionBtn');
     const btnAddOrg = document.getElementById('btnAddOrgBtn');
     const btnAddSub = document.getElementById('btnAddSubOrgBtn');
 
-    if (btnAddReg) {
-      btnAddReg.disabled = !canAddReg;
-      btnAddReg.title = canAddReg ? 'Add Geographic Region' : 'Access Restricted: Requires Add/Manage Region privilege';
-    }
-    if (btnAddOrg) {
-      btnAddOrg.disabled = !canAddOrg;
-      btnAddOrg.title = canAddOrg ? 'Add Educational Organization' : 'Access Restricted: Requires Add/Manage Organization privilege';
-    }
-    if (btnAddSub) {
-      btnAddSub.disabled = !canAddSub;
-      btnAddSub.title = canAddSub ? 'Add Institutional Sub-organization' : 'Access Restricted: Requires Add/Manage Sub-organization privilege';
-    }
+    if (btnAddReg) btnAddReg.style.display = canAddReg ? 'inline-flex' : 'none';
+    if (btnAddOrg) btnAddOrg.style.display = canAddOrg ? 'inline-flex' : 'none';
+    if (btnAddSub) btnAddSub.style.display = canAddSub ? 'inline-flex' : 'none';
 
     container.innerHTML = countries.map(country => {
       const regions = DB.regions.filter(r => r.country === country.code);
@@ -949,6 +999,17 @@
               const orgs = DB.organizations.filter(o => o.regionId === reg.id);
               const isRegDisabled = reg.status === 'disabled';
 
+              const regActions = [];
+              if (canEditReg) {
+                regActions.push(`<button class="btn btn-outline btn-sm btn-edit-region" data-id="${reg.id}">Edit</button>`);
+              }
+              if (canDisableReg) {
+                regActions.push(`<button class="btn btn-outline btn-sm btn-toggle-region-status" data-id="${reg.id}" title="${isRegDisabled ? 'Enable Region' : 'Disable Region'}">${isRegDisabled ? '▶ Enable' : '⏸ Disable'}</button>`);
+              }
+              if (canDeleteReg) {
+                regActions.push(`<button class="btn btn-outline btn-sm btn-delete-region" data-id="${reg.id}" style="color: var(--danger);">Remove</button>`);
+              }
+
               return `
                 <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem; background: var(--bg-muted); ${isRegDisabled ? 'opacity: 0.85;' : ''}">
                   <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
@@ -961,15 +1022,7 @@
                       <span style="font-size: 0.75rem; color: var(--text-muted);">${orgs.length} organizations</span>
                     </div>
                     <div style="display: flex; gap: 0.35rem; align-items: center;">
-                      <button class="btn btn-outline btn-sm btn-edit-region" data-id="${reg.id}" ${!canEditReg ? 'disabled title="Access Restricted: Requires Edit Region privilege"' : 'title="Edit Region"'}>
-                        Edit
-                      </button>
-                      <button class="btn btn-outline btn-sm btn-toggle-region-status" data-id="${reg.id}" ${!canDisableReg ? 'disabled title="Access Restricted: Requires Enable/Disable Region privilege"' : `title="${isRegDisabled ? 'Enable Region' : 'Disable Region'}"`}>
-                        ${isRegDisabled ? '▶ Enable' : '⏸ Disable'}
-                      </button>
-                      <button class="btn btn-outline btn-sm btn-delete-region" data-id="${reg.id}" ${!canDeleteReg ? 'disabled title="Access Restricted: Requires Remove Region privilege"' : 'title="Remove Region"'} style="color: var(--danger);">
-                        Remove
-                      </button>
+                      ${regActions.join('')}
                     </div>
                   </div>
 
@@ -979,6 +1032,17 @@
                       const subs = DB.subOrganizations.filter(s => s.orgId === org.id);
                       const userCount = DB.users.filter(u => u.orgId === org.id).length;
                       const isOrgDisabled = org.status === 'disabled';
+
+                      const orgActions = [];
+                      if (canEditOrg) {
+                        orgActions.push(`<button class="btn btn-ghost btn-sm btn-edit-org" data-id="${org.id}">Edit</button>`);
+                      }
+                      if (canDisableOrg) {
+                        orgActions.push(`<button class="btn btn-ghost btn-sm btn-toggle-org-status" data-id="${org.id}" title="${isOrgDisabled ? 'Enable Organization' : 'Disable Organization'}">${isOrgDisabled ? '▶ Enable' : '⏸ Disable'}</button>`);
+                      }
+                      if (canDeleteOrg) {
+                        orgActions.push(`<button class="btn btn-ghost btn-sm btn-delete-org" data-id="${org.id}" style="color: var(--danger);">Remove</button>`);
+                      }
 
                       return `
                         <div class="tree-item" style="${isOrgDisabled ? 'opacity: 0.8; background: var(--bg-hover);' : ''}">
@@ -991,15 +1055,7 @@
                             <span style="font-size: 0.725rem; color: var(--text-muted);">👥 ${userCount} users</span>
                           </div>
                           <div style="display: flex; gap: 0.35rem; align-items: center;">
-                            <button class="btn btn-ghost btn-sm btn-edit-org" data-id="${org.id}" ${!canEditOrg ? 'disabled title="Access Restricted: Requires Edit Organization privilege"' : 'title="Edit Organization"'}>
-                              Edit
-                            </button>
-                            <button class="btn btn-ghost btn-sm btn-toggle-org-status" data-id="${org.id}" ${!canDisableOrg ? 'disabled title="Access Restricted: Requires Enable/Disable Organization privilege"' : `title="${isOrgDisabled ? 'Enable Organization' : 'Disable Organization'}"`}>
-                              ${isOrgDisabled ? '▶ Enable' : '⏸ Disable'}
-                            </button>
-                            <button class="btn btn-ghost btn-sm btn-delete-org" data-id="${org.id}" ${!canDeleteOrg ? 'disabled title="Access Restricted: Requires Remove Organization privilege"' : 'title="Remove Organization"'} style="color: var(--danger);">
-                              Remove
-                            </button>
+                            ${orgActions.join('')}
                           </div>
                         </div>
 
@@ -1007,6 +1063,18 @@
                         <div class="tree-node" style="margin-bottom: 0.5rem;">
                           ${subs.map(sub => {
                             const isSubDisabled = sub.status === 'disabled';
+
+                            const subActions = [];
+                            if (canEditSub) {
+                              subActions.push(`<button class="btn btn-ghost btn-sm btn-edit-sub" data-id="${sub.id}">Edit</button>`);
+                            }
+                            if (canDisableSub) {
+                              subActions.push(`<button class="btn btn-ghost btn-sm btn-toggle-sub-status" data-id="${sub.id}" title="${isSubDisabled ? 'Enable Sub-organization' : 'Disable Sub-organization'}">${isSubDisabled ? '▶ Enable' : '⏸ Disable'}</button>`);
+                            }
+                            if (canDeleteSub) {
+                              subActions.push(`<button class="btn btn-ghost btn-sm btn-delete-sub" data-id="${sub.id}" style="color: var(--danger);">Remove</button>`);
+                            }
+
                             return `
                               <div class="tree-item" style="background: var(--bg-surface); padding: 0.3rem 0.5rem; ${isSubDisabled ? 'opacity: 0.8;' : ''}">
                                 <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
@@ -1017,15 +1085,7 @@
                                   </span>
                                 </div>
                                 <div style="display: flex; gap: 0.25rem; align-items: center;">
-                                  <button class="btn btn-ghost btn-sm btn-edit-sub" data-id="${sub.id}" ${!canEditSub ? 'disabled title="Access Restricted: Requires Edit Sub-organization privilege"' : 'title="Edit Sub-organization"'}>
-                                    Edit
-                                  </button>
-                                  <button class="btn btn-ghost btn-sm btn-toggle-sub-status" data-id="${sub.id}" ${!canDisableSub ? 'disabled title="Access Restricted: Requires Enable/Disable Sub-organization privilege"' : `title="${isSubDisabled ? 'Enable Sub-organization' : 'Disable Sub-organization'}"`}>
-                                    ${isSubDisabled ? '▶ Enable' : '⏸ Disable'}
-                                  </button>
-                                  <button class="btn btn-ghost btn-sm btn-delete-sub" data-id="${sub.id}" ${!canDeleteSub ? 'disabled title="Access Restricted: Requires Remove Sub-organization privilege"' : 'title="Remove Sub-organization"'} style="color: var(--danger);">
-                                    Remove
-                                  </button>
+                                  ${subActions.join('')}
                                 </div>
                               </div>
                             `;
@@ -1236,6 +1296,14 @@
     senderSelect.innerHTML = triggerGroups.map(g => `
       <option value="${g.id}">${g.name} (${g.codeName})</option>
     `).join('');
+
+    // Rule: Hide dispatch/reset controls completely if active group cannot trigger RCS
+    const activeGroup = getCurrentGroup();
+    const canTriggerRcs = Boolean(activeGroup.privileges?.rcs_trigger?.allowed);
+    const sendBtn = document.getElementById('btnRcsSendTrigger');
+    const resetBtn = document.getElementById('btnRcsResetForm');
+    if (sendBtn) sendBtn.style.display = canTriggerRcs ? 'inline-flex' : 'none';
+    if (resetBtn) resetBtn.style.display = canTriggerRcs ? 'inline-flex' : 'none';
 
     function updateAllowedTypes() {
       const selectedGid = senderSelect.value;
@@ -2168,6 +2236,7 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
     const title = document.getElementById('pwdModalTitle');
     const targetInput = document.getElementById('pwdTargetUserId');
     const phoneDisplay = document.getElementById('recoveryPhoneDisplay');
+    const btnApplyPwd = document.getElementById('btnApplyPasswordChange');
 
     if (!modal) return;
 
@@ -2175,22 +2244,62 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
     targetInput.value = user.id;
     if (phoneDisplay) phoneDisplay.value = user.phone;
 
-    switchPwdMode('change');
-    generateCryptoPassword();
+    // Granular privileges (Rules 6.5, 6.6, 6.7):
+    const canChange = hasPrivilege('change_password');
+    const canChooseOrGen = hasPrivilege('choose_or_generated_password');
+    const canRetrieve = hasPrivilege('retrieve_forgotten_password');
+
+    const tabChange = document.querySelector('.pwd-tab-btn[data-pwd-mode="change"]');
+    const tabGen = document.querySelector('.pwd-tab-btn[data-pwd-mode="generate"]');
+    const tabRetrieve = document.querySelector('.pwd-tab-btn[data-pwd-mode="retrieve"]');
+
+    // Rule: Hide tabs completely rather than dimming if unauthorized
+    if (tabChange) tabChange.style.display = canChange ? 'inline-flex' : 'none';
+    if (tabGen) tabGen.style.display = canChooseOrGen ? 'inline-flex' : 'none';
+    if (tabRetrieve) tabRetrieve.style.display = canRetrieve ? 'inline-flex' : 'none';
+
+    // Pick first available authorized mode
+    let initialMode = null;
+    if (canChange) initialMode = 'change';
+    else if (canChooseOrGen) initialMode = 'generate';
+    else if (canRetrieve) initialMode = 'retrieve';
+
+    if (initialMode) {
+      switchPwdMode(initialMode);
+      if (initialMode === 'generate') generateCryptoPassword();
+    } else {
+      document.querySelectorAll('.pwd-mode-view').forEach(view => view.style.display = 'none');
+      if (btnApplyPwd) btnApplyPwd.style.display = 'none';
+      showToast('Access Denied: Your group has no password management privileges.', 'warning');
+      return;
+    }
 
     modal.classList.add('active');
   }
 
   function switchPwdMode(mode) {
+    const canChange = hasPrivilege('change_password');
+    const canChooseOrGen = hasPrivilege('choose_or_generated_password');
+    const canRetrieve = hasPrivilege('retrieve_forgotten_password');
+
     document.querySelectorAll('.pwd-tab-btn').forEach(btn => {
       btn.classList.toggle('btn-primary', btn.dataset.pwdMode === mode);
       btn.classList.toggle('btn-outline', btn.dataset.pwdMode !== mode);
     });
 
     document.querySelectorAll('.pwd-mode-view').forEach(view => view.style.display = 'none');
-    if (mode === 'change') document.getElementById('pwdModeChange').style.display = 'block';
-    if (mode === 'generate') document.getElementById('pwdModeGenerate').style.display = 'block';
-    if (mode === 'retrieve') document.getElementById('pwdModeRetrieve').style.display = 'block';
+    const btnApplyPwd = document.getElementById('btnApplyPasswordChange');
+
+    if (mode === 'change' && canChange) {
+      document.getElementById('pwdModeChange').style.display = 'block';
+      if (btnApplyPwd) btnApplyPwd.style.display = 'inline-flex';
+    } else if (mode === 'generate' && canChooseOrGen) {
+      document.getElementById('pwdModeGenerate').style.display = 'block';
+      if (btnApplyPwd) btnApplyPwd.style.display = 'inline-flex';
+    } else if (mode === 'retrieve' && canRetrieve) {
+      document.getElementById('pwdModeRetrieve').style.display = 'block';
+      if (btnApplyPwd) btnApplyPwd.style.display = 'none';
+    }
   }
 
   /**
@@ -2923,6 +3032,10 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
     if (rcsForm) {
       rcsForm.onsubmit = (e) => {
         e.preventDefault();
+        if (!getCurrentGroup().privileges.rcs_trigger?.allowed) {
+          showToast('Access Denied: Your active group does not have privilege to trigger RCS broadcasts.', 'danger');
+          return;
+        }
         const senderGid = document.getElementById('rcsSenderGroupSelect').value;
         const typeId = document.getElementById('rcsMessageTypeSelect').value;
         const title = document.getElementById('rcsMsgTitle').value;

@@ -78,7 +78,7 @@ The platform simulates multi-tenant administrative boundaries, role-based access
 - **CSV & XLS Roster Ingestion (Rule 3.2)**: Drag-and-drop batch import with client-side row-by-row error detection and pre-formatted CSV template download.
 
 ### 4. Privacy Shields & Credential Lifecycle (Rules 6.0 – 6.7)
-- **Privacy Gating (Rule 6.0)**: Date of birth, residential address, national ID (*rodné číslo*), and emergency contacts are masked as `••••••••••••• [Restricted]` unless the viewer possesses the `view_others_personal` privilege.
+- **Sensitive Name & Contact Privacy Gating (Rule 6.0)**: Personal names are treated as high-sensitivity private records. If the viewer lacks the `view_others_personal` privilege, other users' full names are masked as `••••••••••••• [Restricted Name]`, avatars as locked shields (`🔒`), emails as `•••••••••@•••••`, and phone numbers/addresses/national IDs as `••••••••••••• [Restricted]`. Real names are only revealed to authorized supervisors or when viewing one's own identity.
 - **Self vs. Others Editing (Rules 6.2 – 6.3)**: Separate privileges control editing one's own profile vs. modifying other records.
 - **Password Strength Evaluation (Rule 6.5 – 6.6)**: Real-time entropy evaluation checking length, uppercase, numbers, and special symbols.
 - **Cryptographic Generator (Rule 6.6)**: Generates 16-character alphanumeric passwords via `crypto.getRandomValues`.

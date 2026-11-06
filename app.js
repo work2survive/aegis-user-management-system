@@ -282,15 +282,46 @@
   /**
    * Privacy Protection Masking (Rule 6.0).
    * Masks sensitive attributes (e.g. personal phone number, national ID, address)
-   * unless the active session has `view_others_personal` privilege.
+   * unless the active session has `view_others_personal` privilege or is viewing self.
    * 
    * @param {string} val - Unmasked sensitive value
+   * @param {boolean} isSelf - True if viewer is viewing own profile
    * @returns {string} Unmasked value or `••••••••••••• [Restricted]`
    */
-  function maskSensitive(val) {
+  function maskSensitive(val, isSelf = false) {
     if (!val) return '—';
+    if (isSelf) return val;
     if (hasPrivilege('view_others_personal')) return val;
     return '••••••••••••• [Restricted]';
+  }
+
+  /**
+   * Privacy Protection Masking for Names (Rule 6.0).
+   * Personal names are highly sensitive private data.
+   * If the viewer lacks 'view_others_personal', all other users' names are hidden.
+   * 
+   * @param {Object} user - Target user object
+   * @param {boolean} isSelf - True if the viewer is viewing their own record
+   * @returns {string} Full name or protected placeholder
+   */
+  function maskSensitiveName(user, isSelf = false) {
+    if (!user) return '—';
+    if (isSelf) return user.name;
+    if (hasPrivilege('view_others_personal')) return user.name;
+    return '••••••••••••• [Restricted Name]';
+  }
+
+  /**
+   * Privacy Protection Masking for Email Addresses (Rule 6.0).
+   * @param {Object} user - Target user object
+   * @param {boolean} isSelf - True if the viewer is viewing their own record
+   * @returns {string} Email or protected mask
+   */
+  function maskSensitiveEmail(user, isSelf = false) {
+    if (!user || !user.email) return '—';
+    if (isSelf) return user.email;
+    if (hasPrivilege('view_others_personal')) return user.email;
+    return '•••••••••@•••••';
   }
 
   // =========================================================================
@@ -589,15 +620,24 @@
 
       const flag = user.country === 'CZ' ? '🇨🇿' : '🇸🇰';
       const isSelf = user.id === currentUser.id;
+      const canViewPersonal = isSelf || hasPrivilege('view_others_personal');
 
       // Granular permissions gating
-      const canEdit = isSelf ? hasPrivilege('edit_own_personal') : hasPrivilege('edit_user');
+      const canEdit = isSelf ? hasPrivilege('edit_own_personal') : (hasPrivilege('edit_user') && hasPrivilege('edit_others_personal') && hasPrivilege('view_others_personal'));
       const canDelete = hasPrivilege('delete_user') && !isSelf;
       const canDisable = hasPrivilege('disable_user') && !isSelf;
-      const canChangePwd = hasPrivilege('change_password');
+      const canChangePwd = isSelf ? hasPrivilege('change_password') : (hasPrivilege('change_password') && hasPrivilege('edit_others_personal'));
 
-      // Privacy mask on phone
-      const maskedPhone = maskSensitive(user.phone);
+      // Privacy masks on personal details: names, emails, phones
+      const displayName = maskSensitiveName(user, isSelf);
+      const displayEmail = maskSensitiveEmail(user, isSelf);
+      const maskedPhone = maskSensitive(user.phone, isSelf);
+
+      const avatarContent = canViewPersonal ? 
+        `${user.firstName[0]}${user.lastName[0]}` : 
+        `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
+
+      const avatarStyle = canViewPersonal ? '' : 'background: var(--bg-muted); color: var(--text-muted); border: 1px solid var(--border-color);';
 
       return `
         <tr class="${isSelected ? 'selected' : ''}" data-id="${user.id}">
@@ -606,10 +646,10 @@
           </td>
           <td>
             <div class="cell-user-info">
-              <div class="user-avatar-sm">${user.firstName[0]}${user.lastName[0]}</div>
+              <div class="user-avatar-sm" style="${avatarStyle}" title="${canViewPersonal ? user.name : 'Personal Details Restricted'}">${avatarContent}</div>
               <div class="user-names-col">
-                <span class="user-primary-name">${user.name}</span>
-                <span class="user-secondary-email">${user.email}</span>
+                <span class="user-primary-name" style="${!canViewPersonal ? 'color: var(--text-muted); font-style: italic;' : ''}">${displayName}</span>
+                <span class="user-secondary-email">${displayEmail}</span>
               </div>
             </div>
           </td>
@@ -2222,14 +2262,29 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
         if (editBtn) {
           const uid = editBtn.dataset.id;
           const user = DB.users.find(u => u.id === uid);
-          if (user) openUserModal(user);
+          if (user) {
+            const isSelf = user.id === currentUser.id;
+            if (!isSelf && !hasPrivilege('view_others_personal')) {
+              showToast('Access Denied: You do not possess privileges to inspect personal information of other users.', 'danger');
+              return;
+            }
+            openUserModal(user);
+          }
           return;
         }
 
         const pwdBtn = e.target.closest('.btn-action-pwd');
         if (pwdBtn) {
           const uid = pwdBtn.dataset.id;
-          openPasswordModal(uid);
+          const user = DB.users.find(u => u.id === uid);
+          if (user) {
+            const isSelf = user.id === currentUser.id;
+            if (!isSelf && !hasPrivilege('view_others_personal')) {
+              showToast('Access Denied: You do not possess privileges to manage credentials of other users.', 'danger');
+              return;
+            }
+            openPasswordModal(uid);
+          }
           return;
         }
 
@@ -2468,10 +2523,15 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
         const users = getFilteredUsers();
         let csv = 'id,first_name,last_name,email,mandatory_phone,country,region,organization,group,status\n';
         users.forEach(u => {
+          const isSelf = u.id === currentUser.id;
           const reg = DB.regions.find(r => r.id === u.regionId)?.name || '';
           const org = DB.organizations.find(o => o.id === u.orgId)?.name || '';
           const grp = DB.groups.find(g => g.id === u.groupId)?.codeName || '';
-          csv += `"${u.id}","${u.firstName}","${u.lastName}","${u.email}","${u.phone}","${u.country}","${reg}","${org}","${grp}","${u.status}"\n`;
+          const firstName = maskSensitive(u.firstName, isSelf);
+          const lastName = maskSensitive(u.lastName, isSelf);
+          const email = maskSensitiveEmail(u, isSelf);
+          const phone = maskSensitive(u.phone, isSelf);
+          csv += `"${u.id}","${firstName}","${lastName}","${email}","${phone}","${u.country}","${reg}","${org}","${grp}","${u.status}"\n`;
         });
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');

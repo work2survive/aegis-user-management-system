@@ -289,9 +289,8 @@ body {
 }
 
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed !important;
-  pointer-events: none;
 }
 
 .btn-primary {

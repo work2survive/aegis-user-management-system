@@ -145,9 +145,9 @@ graph TD
     C --> C5[Bulk Edit Users]
     C --> C6[Import XLS / CSV]
 
-    D --> D1[Manage Regions]
-    D --> D2[Manage Organizations]
-    D --> D3[Manage Sub-organizations]
+    D --> D1[Regions: Add / Edit / Disable / Remove]
+    D --> D2[Organizations: Add / Edit / Disable / Remove]
+    D --> D3[Sub-orgs: Add / Edit / Disable / Remove]
 
     E --> E1[View Others' Personal Info]
     E --> E2[Edit Others' Personal Info]

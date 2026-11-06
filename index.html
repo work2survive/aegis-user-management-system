@@ -851,9 +851,35 @@
               <button type="button" class="btn btn-ghost btn-sm select-all-btn" data-target="grp-priv-hierarchy">Select All</button>
             </div>
             <div class="privilege-checkboxes-grid" id="grp-priv-hierarchy">
-              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="manage_regions"> 4.0 Add / Edit / Disable / Remove Regions</label>
-              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="manage_organizations"> 4.1 Add / Edit / Disable / Remove Organizations</label>
-              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="manage_sub_organizations"> 4.2 Add / Edit / Disable / Remove Sub-organizations</label>
+              <!-- 4.0 Geographic Regions -->
+              <div style="grid-column: 1 / -1; font-weight: 700; color: var(--primary); font-size: 0.8rem; margin-top: 0.35rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 0.2rem;">
+                4.0 Geographic Regions
+              </div>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="manage_regions"> <strong>All Region Operations (Master)</strong></label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="create_region"> Add Regions</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="edit_region"> Edit Regions</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="disable_region"> Enable / Disable Regions</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="delete_region"> Remove Regions</label>
+
+              <!-- 4.1 Educational Organizations -->
+              <div style="grid-column: 1 / -1; font-weight: 700; color: var(--primary); font-size: 0.8rem; margin-top: 0.5rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 0.2rem;">
+                4.1 Educational Organizations
+              </div>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="manage_organizations"> <strong>All Organization Operations (Master)</strong></label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="create_organization"> Add Organizations</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="edit_organization"> Edit Organizations</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="disable_organization"> Enable / Disable Organizations</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="delete_organization"> Remove Organizations</label>
+
+              <!-- 4.2 Institutional Sub-organizations -->
+              <div style="grid-column: 1 / -1; font-weight: 700; color: var(--primary); font-size: 0.8rem; margin-top: 0.5rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 0.2rem;">
+                4.2 Institutional Sub-organizations
+              </div>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="manage_sub_organizations"> <strong>All Sub-org Operations (Master)</strong></label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="create_sub_organization"> Add Sub-organizations</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="edit_sub_organization"> Edit Sub-organizations</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="disable_sub_organization"> Enable / Disable Sub-organizations</label>
+              <label class="checkbox-label"><input type="checkbox" class="custom-checkbox priv-check" value="delete_sub_organization"> Remove Sub-organizations</label>
             </div>
           </div>
 
@@ -1139,6 +1165,14 @@
           <input type="hidden" id="hierarchyLevelType" value="org">
           <input type="hidden" id="hierarchyItemId">
 
+          <div class="form-group" id="hierarchyCountryGroup" style="display: none;">
+            <label class="form-label" id="hierarchyCountryLabel">Country</label>
+            <select class="form-control" id="hierarchyCountrySelect">
+              <option value="CZ">🇨🇿 Czech Republic (Česká republika)</option>
+              <option value="SK">🇸🇰 Slovakia (Slovenská republika)</option>
+            </select>
+          </div>
+
           <div class="form-group" id="hierarchyParentGroup">
             <label class="form-label" id="hierarchyParentLabel">Parent Entity</label>
             <select class="form-control" id="hierarchyParentSelect">
@@ -1160,7 +1194,7 @@
             <label class="form-label">Status</label>
             <select class="form-control" id="hierarchyStatus">
               <option value="active">Active</option>
-              <option value="inactive">Inactive / Disabled</option>
+              <option value="disabled">Disabled</option>
             </select>
           </div>
         </div>

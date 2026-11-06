@@ -186,7 +186,20 @@
     // Scan across all privilege buckets (user_mgmt, group_mgmt, personal_info, hierarchy_mgmt)
     for (const cat in group.privileges) {
       const val = group.privileges[cat];
-      if (Array.isArray(val) && val.includes(privilegeKey)) return true;
+      if (Array.isArray(val)) {
+        if (val.includes(privilegeKey)) return true;
+
+        // Map umbrella hierarchy master privileges to granular actions
+        if ((privilegeKey === 'create_region' || privilegeKey === 'edit_region' || privilegeKey === 'disable_region' || privilegeKey === 'delete_region') && val.includes('manage_regions')) {
+          return true;
+        }
+        if ((privilegeKey === 'create_organization' || privilegeKey === 'edit_organization' || privilegeKey === 'disable_organization' || privilegeKey === 'delete_organization') && val.includes('manage_organizations')) {
+          return true;
+        }
+        if ((privilegeKey === 'create_sub_organization' || privilegeKey === 'edit_sub_organization' || privilegeKey === 'disable_sub_organization' || privilegeKey === 'delete_sub_organization') && val.includes('manage_sub_organizations')) {
+          return true;
+        }
+      }
     }
     return false;
   }
@@ -870,6 +883,10 @@
   /**
    * Renders the hierarchical tree structure:
    * Country ➔ Regions ➔ Organizations ➔ Sub-organizations.
+   * Enforces granular privileges for:
+   * 4.0 Add / Edit / Disable / Remove Regions
+   * 4.1 Add / Edit / Disable / Remove Organizations
+   * 4.2 Add / Edit / Disable / Remove Sub-organizations
    */
   function renderHierarchy() {
     const container = document.getElementById('hierarchyContainer');
@@ -880,9 +897,39 @@
       { code: 'SK', name: 'Slovenská republika 🇸🇰' }
     ];
 
-    const canManageReg = hasPrivilege('manage_regions');
-    const canManageOrg = hasPrivilege('manage_organizations');
-    const canManageSub = hasPrivilege('manage_sub_organizations');
+    // Evaluate granular privileges (with backwards compatibility for master keys)
+    const canAddReg = hasPrivilege('create_region') || hasPrivilege('manage_regions');
+    const canEditReg = hasPrivilege('edit_region') || hasPrivilege('manage_regions');
+    const canDisableReg = hasPrivilege('disable_region') || hasPrivilege('manage_regions');
+    const canDeleteReg = hasPrivilege('delete_region') || hasPrivilege('manage_regions');
+
+    const canAddOrg = hasPrivilege('create_organization') || hasPrivilege('manage_organizations');
+    const canEditOrg = hasPrivilege('edit_organization') || hasPrivilege('manage_organizations');
+    const canDisableOrg = hasPrivilege('disable_organization') || hasPrivilege('manage_organizations');
+    const canDeleteOrg = hasPrivilege('delete_organization') || hasPrivilege('manage_organizations');
+
+    const canAddSub = hasPrivilege('create_sub_organization') || hasPrivilege('manage_sub_organizations');
+    const canEditSub = hasPrivilege('edit_sub_organization') || hasPrivilege('manage_sub_organizations');
+    const canDisableSub = hasPrivilege('disable_sub_organization') || hasPrivilege('manage_sub_organizations');
+    const canDeleteSub = hasPrivilege('delete_sub_organization') || hasPrivilege('manage_sub_organizations');
+
+    // Synchronize top action toolbar buttons
+    const btnAddReg = document.getElementById('btnAddRegionBtn');
+    const btnAddOrg = document.getElementById('btnAddOrgBtn');
+    const btnAddSub = document.getElementById('btnAddSubOrgBtn');
+
+    if (btnAddReg) {
+      btnAddReg.disabled = !canAddReg;
+      btnAddReg.title = canAddReg ? 'Add Geographic Region' : 'Access Restricted: Requires Add/Manage Region privilege';
+    }
+    if (btnAddOrg) {
+      btnAddOrg.disabled = !canAddOrg;
+      btnAddOrg.title = canAddOrg ? 'Add Educational Organization' : 'Access Restricted: Requires Add/Manage Organization privilege';
+    }
+    if (btnAddSub) {
+      btnAddSub.disabled = !canAddSub;
+      btnAddSub.title = canAddSub ? 'Add Institutional Sub-organization' : 'Access Restricted: Requires Add/Manage Sub-organization privilege';
+    }
 
     container.innerHTML = countries.map(country => {
       const regions = DB.regions.filter(r => r.country === country.code);
@@ -900,17 +947,29 @@
           <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem;">
             ${regions.map(reg => {
               const orgs = DB.organizations.filter(o => o.regionId === reg.id);
+              const isRegDisabled = reg.status === 'disabled';
+
               return `
-                <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem; background: var(--bg-muted);">
-                  <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                      <span style="font-weight: 700; font-size: 0.9rem;">📍 ${reg.name}</span>
+                <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem; background: var(--bg-muted); ${isRegDisabled ? 'opacity: 0.85;' : ''}">
+                  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                      <span style="font-weight: 700; font-size: 0.9rem; ${isRegDisabled ? 'text-decoration: line-through; opacity: 0.75;' : ''}">📍 ${reg.name}</span>
                       <span class="badge badge-neutral">${reg.code}</span>
+                      <span class="badge ${isRegDisabled ? 'badge-danger' : 'badge-success'}" style="font-size: 0.65rem; text-transform: uppercase;">
+                        ${isRegDisabled ? 'Disabled' : 'Active'}
+                      </span>
                       <span style="font-size: 0.75rem; color: var(--text-muted);">${orgs.length} organizations</span>
                     </div>
-                    <div style="display: flex; gap: 0.35rem;">
-                      <button class="btn btn-outline btn-sm btn-edit-region" data-id="${reg.id}" ${!canManageReg ? 'disabled' : ''}>Edit</button>
-                      <button class="btn btn-outline btn-sm btn-delete-region" data-id="${reg.id}" ${!canManageReg ? 'disabled' : ''} style="color: var(--danger);">Remove</button>
+                    <div style="display: flex; gap: 0.35rem; align-items: center;">
+                      <button class="btn btn-outline btn-sm btn-edit-region" data-id="${reg.id}" ${!canEditReg ? 'disabled title="Access Restricted: Requires Edit Region privilege"' : 'title="Edit Region"'}>
+                        Edit
+                      </button>
+                      <button class="btn btn-outline btn-sm btn-toggle-region-status" data-id="${reg.id}" ${!canDisableReg ? 'disabled title="Access Restricted: Requires Enable/Disable Region privilege"' : `title="${isRegDisabled ? 'Enable Region' : 'Disable Region'}"`}>
+                        ${isRegDisabled ? '▶ Enable' : '⏸ Disable'}
+                      </button>
+                      <button class="btn btn-outline btn-sm btn-delete-region" data-id="${reg.id}" ${!canDeleteReg ? 'disabled title="Access Restricted: Requires Remove Region privilege"' : 'title="Remove Region"'} style="color: var(--danger);">
+                        Remove
+                      </button>
                     </div>
                   </div>
 
@@ -919,34 +978,58 @@
                     ${orgs.map(org => {
                       const subs = DB.subOrganizations.filter(s => s.orgId === org.id);
                       const userCount = DB.users.filter(u => u.orgId === org.id).length;
+                      const isOrgDisabled = org.status === 'disabled';
 
                       return `
-                        <div class="tree-item">
-                          <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <span style="font-weight: 600;">🏛️ ${org.name}</span>
+                        <div class="tree-item" style="${isOrgDisabled ? 'opacity: 0.8; background: var(--bg-hover);' : ''}">
+                          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                            <span style="font-weight: 600; ${isOrgDisabled ? 'text-decoration: line-through; opacity: 0.75;' : ''}">🏛️ ${org.name}</span>
                             <span class="badge badge-primary">${org.code}</span>
+                            <span class="badge ${isOrgDisabled ? 'badge-danger' : 'badge-success'}" style="font-size: 0.65rem; text-transform: uppercase;">
+                              ${isOrgDisabled ? 'Disabled' : 'Active'}
+                            </span>
                             <span style="font-size: 0.725rem; color: var(--text-muted);">👥 ${userCount} users</span>
                           </div>
-                          <div style="display: flex; gap: 0.35rem;">
-                            <button class="btn btn-ghost btn-sm btn-edit-org" data-id="${org.id}" ${!canManageOrg ? 'disabled' : ''}>Edit</button>
-                            <button class="btn btn-ghost btn-sm btn-delete-org" data-id="${org.id}" ${!canManageOrg ? 'disabled' : ''} style="color: var(--danger);">Remove</button>
+                          <div style="display: flex; gap: 0.35rem; align-items: center;">
+                            <button class="btn btn-ghost btn-sm btn-edit-org" data-id="${org.id}" ${!canEditOrg ? 'disabled title="Access Restricted: Requires Edit Organization privilege"' : 'title="Edit Organization"'}>
+                              Edit
+                            </button>
+                            <button class="btn btn-ghost btn-sm btn-toggle-org-status" data-id="${org.id}" ${!canDisableOrg ? 'disabled title="Access Restricted: Requires Enable/Disable Organization privilege"' : `title="${isOrgDisabled ? 'Enable Organization' : 'Disable Organization'}"`}>
+                              ${isOrgDisabled ? '▶ Enable' : '⏸ Disable'}
+                            </button>
+                            <button class="btn btn-ghost btn-sm btn-delete-org" data-id="${org.id}" ${!canDeleteOrg ? 'disabled title="Access Restricted: Requires Remove Organization privilege"' : 'title="Remove Organization"'} style="color: var(--danger);">
+                              Remove
+                            </button>
                           </div>
                         </div>
 
                         <!-- Sub-organizations -->
                         <div class="tree-node" style="margin-bottom: 0.5rem;">
-                          ${subs.map(sub => `
-                            <div class="tree-item" style="background: var(--bg-surface); padding: 0.3rem 0.5rem;">
-                              <div style="display: flex; align-items: center; gap: 0.4rem;">
-                                <span style="font-size: 0.8rem;">↳ ${sub.name}</span>
-                                <span class="badge badge-neutral" style="font-size: 0.65rem;">${sub.code}</span>
+                          ${subs.map(sub => {
+                            const isSubDisabled = sub.status === 'disabled';
+                            return `
+                              <div class="tree-item" style="background: var(--bg-surface); padding: 0.3rem 0.5rem; ${isSubDisabled ? 'opacity: 0.8;' : ''}">
+                                <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                                  <span style="font-size: 0.8rem; ${isSubDisabled ? 'text-decoration: line-through; opacity: 0.75;' : ''}">↳ ${sub.name}</span>
+                                  <span class="badge badge-neutral" style="font-size: 0.65rem;">${sub.code}</span>
+                                  <span class="badge ${isSubDisabled ? 'badge-danger' : 'badge-success'}" style="font-size: 0.6rem; text-transform: uppercase;">
+                                    ${isSubDisabled ? 'Disabled' : 'Active'}
+                                  </span>
+                                </div>
+                                <div style="display: flex; gap: 0.25rem; align-items: center;">
+                                  <button class="btn btn-ghost btn-sm btn-edit-sub" data-id="${sub.id}" ${!canEditSub ? 'disabled title="Access Restricted: Requires Edit Sub-organization privilege"' : 'title="Edit Sub-organization"'}>
+                                    Edit
+                                  </button>
+                                  <button class="btn btn-ghost btn-sm btn-toggle-sub-status" data-id="${sub.id}" ${!canDisableSub ? 'disabled title="Access Restricted: Requires Enable/Disable Sub-organization privilege"' : `title="${isSubDisabled ? 'Enable Sub-organization' : 'Disable Sub-organization'}"`}>
+                                    ${isSubDisabled ? '▶ Enable' : '⏸ Disable'}
+                                  </button>
+                                  <button class="btn btn-ghost btn-sm btn-delete-sub" data-id="${sub.id}" ${!canDeleteSub ? 'disabled title="Access Restricted: Requires Remove Sub-organization privilege"' : 'title="Remove Sub-organization"'} style="color: var(--danger);">
+                                    Remove
+                                  </button>
+                                </div>
                               </div>
-                              <div style="display: flex; gap: 0.25rem;">
-                                <button class="btn btn-ghost btn-sm btn-edit-sub" data-id="${sub.id}" ${!canManageSub ? 'disabled' : ''}>Edit</button>
-                                <button class="btn btn-ghost btn-sm btn-delete-sub" data-id="${sub.id}" ${!canManageSub ? 'disabled' : ''} style="color: var(--danger);">Remove</button>
-                              </div>
-                            </div>
-                          `).join('')}
+                            `;
+                          }).join('')}
                         </div>
                       `;
                     }).join('')}
@@ -958,6 +1041,175 @@
         </div>
       `;
     }).join('');
+
+    // Unified click action delegation on container
+    container.onclick = (e) => {
+      // 1. REGION ACTIONS
+      const toggleRegBtn = e.target.closest('.btn-toggle-region-status');
+      if (toggleRegBtn) {
+        if (!canDisableReg) {
+          showToast('Access Denied: Your group does not have privilege to enable/disable regions.', 'danger');
+          return;
+        }
+        const reg = DB.regions.find(r => r.id === toggleRegBtn.dataset.id);
+        if (reg) {
+          reg.status = reg.status === 'disabled' ? 'active' : 'disabled';
+          saveDB();
+          renderHierarchy();
+          populateUserFilters();
+          addAuditLog('Region Status Change', `${reg.name} (${reg.code}) set to ${reg.status.toUpperCase()}`);
+          showToast(`Region "${reg.name}" is now ${reg.status}.`, reg.status === 'disabled' ? 'warning' : 'success');
+        }
+        return;
+      }
+
+      const editRegBtn = e.target.closest('.btn-edit-region');
+      if (editRegBtn) {
+        if (!canEditReg) {
+          showToast('Access Denied: Your group does not have privilege to edit regions.', 'danger');
+          return;
+        }
+        const reg = DB.regions.find(r => r.id === editRegBtn.dataset.id);
+        if (reg) openHierarchyModal('region', reg);
+        return;
+      }
+
+      const deleteRegBtn = e.target.closest('.btn-delete-region');
+      if (deleteRegBtn) {
+        if (!canDeleteReg) {
+          showToast('Access Denied: Your group does not have privilege to remove regions.', 'danger');
+          return;
+        }
+        const reg = DB.regions.find(r => r.id === deleteRegBtn.dataset.id);
+        if (reg) {
+          const childOrgs = DB.organizations.filter(o => o.regionId === reg.id);
+          if (childOrgs.length > 0) {
+            showToast(`Cannot remove region "${reg.name}": contains ${childOrgs.length} active organizations. Remove or reassign them first.`, 'warning');
+            return;
+          }
+          if (confirm(`Are you sure you want to permanently remove region "${reg.name}" (${reg.code})?`)) {
+            DB.regions = DB.regions.filter(r => r.id !== reg.id);
+            saveDB();
+            renderHierarchy();
+            populateUserFilters();
+            addAuditLog('Region Removed', `${reg.name} (${reg.code})`);
+            showToast(`Region "${reg.name}" removed.`, 'info');
+          }
+        }
+        return;
+      }
+
+      // 2. ORGANIZATION ACTIONS
+      const toggleOrgBtn = e.target.closest('.btn-toggle-org-status');
+      if (toggleOrgBtn) {
+        if (!canDisableOrg) {
+          showToast('Access Denied: Your group does not have privilege to enable/disable organizations.', 'danger');
+          return;
+        }
+        const org = DB.organizations.find(o => o.id === toggleOrgBtn.dataset.id);
+        if (org) {
+          org.status = org.status === 'disabled' ? 'active' : 'disabled';
+          saveDB();
+          renderHierarchy();
+          populateUserFilters();
+          addAuditLog('Org Status Change', `${org.name} (${org.code}) set to ${org.status.toUpperCase()}`);
+          showToast(`Organization "${org.name}" is now ${org.status}.`, org.status === 'disabled' ? 'warning' : 'success');
+        }
+        return;
+      }
+
+      const editOrgBtn = e.target.closest('.btn-edit-org');
+      if (editOrgBtn) {
+        if (!canEditOrg) {
+          showToast('Access Denied: Your group does not have privilege to edit organizations.', 'danger');
+          return;
+        }
+        const org = DB.organizations.find(o => o.id === editOrgBtn.dataset.id);
+        if (org) openHierarchyModal('org', org);
+        return;
+      }
+
+      const deleteOrgBtn = e.target.closest('.btn-delete-org');
+      if (deleteOrgBtn) {
+        if (!canDeleteOrg) {
+          showToast('Access Denied: Your group does not have privilege to remove organizations.', 'danger');
+          return;
+        }
+        const org = DB.organizations.find(o => o.id === deleteOrgBtn.dataset.id);
+        if (org) {
+          const childSubs = DB.subOrganizations.filter(s => s.orgId === org.id);
+          const orgUsers = DB.users.filter(u => u.orgId === org.id);
+          if (childSubs.length > 0 || orgUsers.length > 0) {
+            showToast(`Cannot remove "${org.name}": contains ${childSubs.length} sub-organizations and ${orgUsers.length} assigned users.`, 'warning');
+            return;
+          }
+          if (confirm(`Are you sure you want to permanently remove organization "${org.name}" (${org.code})?`)) {
+            DB.organizations = DB.organizations.filter(o => o.id !== org.id);
+            saveDB();
+            renderHierarchy();
+            populateUserFilters();
+            addAuditLog('Org Removed', `${org.name} (${org.code})`);
+            showToast(`Organization "${org.name}" removed.`, 'info');
+          }
+        }
+        return;
+      }
+
+      // 3. SUB-ORGANIZATION ACTIONS
+      const toggleSubBtn = e.target.closest('.btn-toggle-sub-status');
+      if (toggleSubBtn) {
+        if (!canDisableSub) {
+          showToast('Access Denied: Your group does not have privilege to enable/disable sub-organizations.', 'danger');
+          return;
+        }
+        const sub = DB.subOrganizations.find(s => s.id === toggleSubBtn.dataset.id);
+        if (sub) {
+          sub.status = sub.status === 'disabled' ? 'active' : 'disabled';
+          saveDB();
+          renderHierarchy();
+          populateUserFilters();
+          addAuditLog('Sub-org Status Change', `${sub.name} (${sub.code}) set to ${sub.status.toUpperCase()}`);
+          showToast(`Sub-organization "${sub.name}" is now ${sub.status}.`, sub.status === 'disabled' ? 'warning' : 'success');
+        }
+        return;
+      }
+
+      const editSubBtn = e.target.closest('.btn-edit-sub');
+      if (editSubBtn) {
+        if (!canEditSub) {
+          showToast('Access Denied: Your group does not have privilege to edit sub-organizations.', 'danger');
+          return;
+        }
+        const sub = DB.subOrganizations.find(s => s.id === editSubBtn.dataset.id);
+        if (sub) openHierarchyModal('sub', sub);
+        return;
+      }
+
+      const deleteSubBtn = e.target.closest('.btn-delete-sub');
+      if (deleteSubBtn) {
+        if (!canDeleteSub) {
+          showToast('Access Denied: Your group does not have privilege to remove sub-organizations.', 'danger');
+          return;
+        }
+        const sub = DB.subOrganizations.find(s => s.id === deleteSubBtn.dataset.id);
+        if (sub) {
+          const subUsers = DB.users.filter(u => u.subOrgId === sub.id);
+          if (subUsers.length > 0) {
+            showToast(`Cannot remove "${sub.name}": contains ${subUsers.length} assigned users.`, 'warning');
+            return;
+          }
+          if (confirm(`Are you sure you want to permanently remove sub-organization "${sub.name}" (${sub.code})?`)) {
+            DB.subOrganizations = DB.subOrganizations.filter(s => s.id !== sub.id);
+            saveDB();
+            renderHierarchy();
+            populateUserFilters();
+            addAuditLog('Sub-org Removed', `${sub.name} (${sub.code})`);
+            showToast(`Sub-organization "${sub.name}" removed.`, 'info');
+          }
+        }
+        return;
+      }
+    };
   }
 
   // =========================================================================
@@ -1238,7 +1490,10 @@
         { key: 'view_others_personal', label: 'View Privacy' },
         { key: 'edit_others_personal', label: 'Edit Privacy' },
         { key: 'change_password', label: 'Change Pwd' },
-        { key: 'manage_organizations', label: 'Manage Orgs' }
+        { key: 'manage_regions', label: 'Manage Regs' },
+        { key: 'disable_region', label: 'Dis/En Reg' },
+        { key: 'manage_organizations', label: 'Manage Orgs' },
+        { key: 'disable_organization', label: 'Dis/En Org' }
       ];
 
       pList.innerHTML = allCheckKeys.map(k => {
@@ -1347,7 +1602,7 @@
 
     if (regSelect) {
       regSelect.innerHTML = DB.regions.map(r => `
-        <option value="${r.id}">[${r.country}] ${r.name}</option>
+        <option value="${r.id}">[${r.country}] ${r.name}${r.status === 'disabled' ? ' (Disabled)' : ''}</option>
       `).join('');
     }
 
@@ -1356,7 +1611,7 @@
       const filteredOrgs = DB.organizations.filter(o => o.regionId === regId);
       if (orgSelect) {
         orgSelect.innerHTML = filteredOrgs.map(o => `
-          <option value="${o.id}">${o.name} (${o.code})</option>
+          <option value="${o.id}">${o.name} (${o.code})${o.status === 'disabled' ? ' (Disabled)' : ''}</option>
         `).join('');
       }
       updateSubs();
@@ -1367,7 +1622,7 @@
       const filteredSubs = DB.subOrganizations.filter(s => s.orgId === orgId);
       if (subSelect) {
         subSelect.innerHTML = '<option value="">— None / Central —</option>' + filteredSubs.map(s => `
-          <option value="${s.id}">${s.name} (${s.code})</option>
+          <option value="${s.id}">${s.name} (${s.code})${s.status === 'disabled' ? ' (Disabled)' : ''}</option>
         `).join('');
       }
     }
@@ -2738,22 +2993,22 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
 
     if (regSelect) {
       regSelect.innerHTML = '<option value="ALL">All Regions</option>' + DB.regions.map(r => `
-        <option value="${r.id}">[${r.country}] ${r.name}</option>
+        <option value="${r.id}">[${r.country}] ${r.name}${r.status === 'disabled' ? ' (Disabled)' : ''}</option>
       `).join('');
     }
     if (orgSelect) {
       orgSelect.innerHTML = '<option value="ALL">All Organizations</option>' + DB.organizations.map(o => `
-        <option value="${o.id}">${o.name}</option>
+        <option value="${o.id}">${o.name}${o.status === 'disabled' ? ' (Disabled)' : ''}</option>
       `).join('');
     }
     if (subSelect) {
       subSelect.innerHTML = '<option value="ALL">All Sub-organizations</option>' + DB.subOrganizations.map(s => `
-        <option value="${s.id}">${s.name}</option>
+        <option value="${s.id}">${s.name}${s.status === 'disabled' ? ' (Disabled)' : ''}</option>
       `).join('');
     }
     if (grpSelect) {
       grpSelect.innerHTML = '<option value="ALL">All Groups</option>' + DB.groups.map(g => `
-        <option value="${g.id}">${g.name} (${g.codeName})</option>
+        <option value="${g.id}">${g.name} (${g.codeName})${g.status === 'disabled' ? ' (Disabled)' : ''}</option>
       `).join('');
     }
   }
@@ -2856,85 +3111,165 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
 
   /**
    * Opens the hierarchy modal to add or edit Region, Organization, or Sub-organization.
+   * Gated by granular privileges:
+   * - Region: create_region / edit_region (or manage_regions)
+   * - Organization: create_organization / edit_organization (or manage_organizations)
+   * - Sub-organization: create_sub_organization / edit_sub_organization (or manage_sub_organizations)
+   * 
    * @param {'region'|'org'|'sub'} type - Level of hierarchy
+   * @param {Object|null} existingItem - Existing entity if editing, or null if creating
    */
-  function openHierarchyModal(type) {
+  function openHierarchyModal(type, existingItem = null) {
     const modal = document.getElementById('modalHierarchy');
     const title = document.getElementById('hierarchyModalTitle');
     const levelInput = document.getElementById('hierarchyLevelType');
+    const itemIdInput = document.getElementById('hierarchyItemId');
+    const countryGroup = document.getElementById('hierarchyCountryGroup');
+    const countrySelect = document.getElementById('hierarchyCountrySelect');
     const parentGroup = document.getElementById('hierarchyParentGroup');
     const parentLabel = document.getElementById('hierarchyParentLabel');
     const parentSelect = document.getElementById('hierarchyParentSelect');
     const nameInput = document.getElementById('hierarchyName');
     const codeInput = document.getElementById('hierarchyCode');
+    const statusSelect = document.getElementById('hierarchyStatus');
 
     if (!modal) return;
 
+    // Strict privilege verification
+    if (existingItem) {
+      if (type === 'region' && !(hasPrivilege('edit_region') || hasPrivilege('manage_regions'))) {
+        showToast('Access Denied: Your group does not have privilege to edit regions.', 'danger');
+        return;
+      }
+      if (type === 'org' && !(hasPrivilege('edit_organization') || hasPrivilege('manage_organizations'))) {
+        showToast('Access Denied: Your group does not have privilege to edit organizations.', 'danger');
+        return;
+      }
+      if (type === 'sub' && !(hasPrivilege('edit_sub_organization') || hasPrivilege('manage_sub_organizations'))) {
+        showToast('Access Denied: Your group does not have privilege to edit sub-organizations.', 'danger');
+        return;
+      }
+    } else {
+      if (type === 'region' && !(hasPrivilege('create_region') || hasPrivilege('manage_regions'))) {
+        showToast('Access Denied: Your group does not have privilege to add regions.', 'danger');
+        return;
+      }
+      if (type === 'org' && !(hasPrivilege('create_organization') || hasPrivilege('manage_organizations'))) {
+        showToast('Access Denied: Your group does not have privilege to add organizations.', 'danger');
+        return;
+      }
+      if (type === 'sub' && !(hasPrivilege('create_sub_organization') || hasPrivilege('manage_sub_organizations'))) {
+        showToast('Access Denied: Your group does not have privilege to add sub-organizations.', 'danger');
+        return;
+      }
+    }
+
     levelInput.value = type;
+    if (itemIdInput) itemIdInput.value = existingItem ? existingItem.id : '';
 
     if (type === 'region') {
-      title.textContent = 'Add Geographic Region';
+      title.textContent = existingItem ? `Edit Geographic Region: ${existingItem.name}` : 'Add Geographic Region';
+      if (countryGroup) {
+        countryGroup.style.display = 'block';
+        if (countrySelect) countrySelect.value = existingItem ? (existingItem.country || 'CZ') : 'CZ';
+      }
       parentGroup.style.display = 'none';
     } else if (type === 'org') {
-      title.textContent = 'Add Educational Organization';
+      title.textContent = existingItem ? `Edit Educational Organization: ${existingItem.name}` : 'Add Educational Organization';
+      if (countryGroup) countryGroup.style.display = 'none';
       parentGroup.style.display = 'block';
       parentLabel.textContent = 'Parent Geographic Region';
       parentSelect.innerHTML = DB.regions.map(r => `
-        <option value="${r.id}">[${r.country}] ${r.name}</option>
+        <option value="${r.id}">[${r.country}] ${r.name}${r.status === 'disabled' ? ' (Disabled)' : ''}</option>
       `).join('');
+      if (existingItem && existingItem.regionId) {
+        parentSelect.value = existingItem.regionId;
+      }
     } else {
-      title.textContent = 'Add Institutional Sub-organization';
+      title.textContent = existingItem ? `Edit Institutional Sub-organization: ${existingItem.name}` : 'Add Institutional Sub-organization';
+      if (countryGroup) countryGroup.style.display = 'none';
       parentGroup.style.display = 'block';
       parentLabel.textContent = 'Parent Educational Organization';
       parentSelect.innerHTML = DB.organizations.map(o => `
-        <option value="${o.id}">${o.name} (${o.code})</option>
+        <option value="${o.id}">${o.name} (${o.code})${o.status === 'disabled' ? ' (Disabled)' : ''}</option>
       `).join('');
+      if (existingItem && existingItem.orgId) {
+        parentSelect.value = existingItem.orgId;
+      }
     }
 
-    nameInput.value = '';
-    codeInput.value = '';
+    nameInput.value = existingItem ? existingItem.name : '';
+    codeInput.value = existingItem ? existingItem.code : '';
+    if (statusSelect) {
+      statusSelect.value = existingItem ? (existingItem.status || 'active') : 'active';
+    }
 
     const form = document.getElementById('formHierarchy');
     form.onsubmit = (e) => {
       e.preventDefault();
       const name = nameInput.value.trim();
       const code = codeInput.value.trim().toUpperCase();
+      const status = statusSelect ? statusSelect.value : 'active';
 
-      if (type === 'region') {
-        const newReg = {
-          id: `reg-${Date.now().toString(36)}`,
-          country: 'CZ',
-          name,
-          code,
-          status: 'active'
-        };
-        DB.regions.push(newReg);
-      } else if (type === 'org') {
-        const newOrg = {
-          id: `org-${Date.now().toString(36)}`,
-          regionId: parentSelect.value,
-          name,
-          code,
-          status: 'active',
-          type: 'Institution'
-        };
-        DB.organizations.push(newOrg);
+      if (existingItem) {
+        // Edit existing item
+        existingItem.name = name;
+        existingItem.code = code;
+        existingItem.status = status;
+
+        if (type === 'region' && countrySelect) {
+          existingItem.country = countrySelect.value;
+        } else if (type === 'org') {
+          existingItem.regionId = parentSelect.value;
+        } else if (type === 'sub') {
+          existingItem.orgId = parentSelect.value;
+        }
+
+        saveDB();
+        modal.classList.remove('active');
+        renderHierarchy();
+        populateUserFilters();
+        addAuditLog('Hierarchy Unit Updated', `${name} (${code}) [${type.toUpperCase()}] status: ${status.toUpperCase()}`);
+        showToast(`${name} (${code}) updated successfully.`, 'success');
       } else {
-        const newSub = {
-          id: `sub-${Date.now().toString(36)}`,
-          orgId: parentSelect.value,
-          name,
-          code,
-          status: 'active'
-        };
-        DB.subOrganizations.push(newSub);
-      }
+        // Create new item
+        if (type === 'region') {
+          const newReg = {
+            id: `reg-${Date.now().toString(36)}`,
+            country: countrySelect ? countrySelect.value : 'CZ',
+            name,
+            code,
+            status
+          };
+          DB.regions.push(newReg);
+        } else if (type === 'org') {
+          const newOrg = {
+            id: `org-${Date.now().toString(36)}`,
+            regionId: parentSelect.value,
+            name,
+            code,
+            status,
+            type: 'Institution'
+          };
+          DB.organizations.push(newOrg);
+        } else {
+          const newSub = {
+            id: `sub-${Date.now().toString(36)}`,
+            orgId: parentSelect.value,
+            name,
+            code,
+            status
+          };
+          DB.subOrganizations.push(newSub);
+        }
 
-      saveDB();
-      modal.classList.remove('active');
-      renderHierarchy();
-      populateUserFilters();
-      showToast(`${name} (${code}) added to hierarchy.`, 'success');
+        saveDB();
+        modal.classList.remove('active');
+        renderHierarchy();
+        populateUserFilters();
+        addAuditLog('Hierarchy Unit Added', `${name} (${code}) [${type.toUpperCase()}] status: ${status.toUpperCase()}`);
+        showToast(`${name} (${code}) added to hierarchy.`, 'success');
+      }
     };
 
     modal.classList.add('active');

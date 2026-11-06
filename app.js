@@ -1,22 +1,65 @@
 /**
- * Aegis Identity — User Management System Simulator
- * Core Application Logic & State Engine
+ * ============================================================================
+ * AEGIS IDENTITY — USER & HIERARCHY MANAGEMENT SYSTEM (CZ / SK)
+ * ============================================================================
+ * 
+ * Architecture & Specification Overview:
+ * --------------------------------------
+ * This application is a fully client-side User & Role Management simulator
+ * tailored for educational, institutional, and enterprise hierarchical structures
+ * across the Czech Republic and Slovak Republic.
+ * 
+ * Supported Regulatory & Behavioral Rules:
+ * - RULE 0.0: Mandatory Unified Phone Numbers (+420 / +421 area code normalization)
+ * - RULE 1.0 - 1.1: Group Management (Create, Name, Rename, Edit, Delete, Disable)
+ * - RULE 2.0 - 2.1: User Management with Scope Enforcement (Country/Region/Org/SubOrg)
+ * - RULE 3.1: Multi-User Bulk Operations (Status, Group, Org reassignments)
+ * - RULE 3.2: CSV & XLS Roster Ingestion with strict client-side row validation
+ * - RULE 4.0 - 4.2: Hierarchical Entity Operations (Regions, Orgs, Sub-Orgs)
+ * - RULE 5.0: Group-level Geographic & Institutional Purview Constraints
+ * - RULE 6.0 - 6.7: Privacy Shields & Credential Lifecycle (Entropy meter, OTP recovery)
+ * - RULE 7.0 - 8.0: RCS Business Messaging Matrix (10 distinct categories with >=1 rule)
+ * - DUPLICATE PRIVILEGE CHECK: Prevents identical permission sets between distinct groups
+ * - AUTO-NAMING ENGINE: Computes human-readable titles & military-grade codenames
+ * - FLOATING TEST SIMULATOR: Draggable, minimizable persona switcher with God Mode (👁️⃤)
+ * 
+ * @author Aegis Identity Architecture Team
+ * @license MIT
+ * ============================================================================
  */
 
 (function () {
   'use strict';
 
   // =========================================================================
-  // 1. STATE MANAGEMENT & DATABASE INITIALIZATION
+  // SECTION 1: SYSTEM STATE & DATABASE CACHING
   // =========================================================================
 
+  /**
+   * Primary persistent database container.
+   * State is seeded from `data.js` (window.DB_INITIAL) on cold boot and
+   * synchronized with localStorage to retain testing mutations across reloads.
+   */
   const DB = {
+    /** @type {Array<Object>} 16 Czech and Slovak territorial administrative regions */
     regions: JSON.parse(localStorage.getItem('aegis_regions')) || (window.DB_INITIAL ? window.DB_INITIAL.regions : []),
+
+    /** @type {Array<Object>} 15 Universities, High Schools & Regional Educational Authorities */
     organizations: JSON.parse(localStorage.getItem('aegis_orgs')) || (window.DB_INITIAL ? window.DB_INITIAL.organizations : []),
+
+    /** @type {Array<Object>} 22 Faculties, Academic Departments & Specialized Units */
     subOrganizations: JSON.parse(localStorage.getItem('aegis_sub_orgs')) || (window.DB_INITIAL ? window.DB_INITIAL.subOrganizations : []),
+
+    /** @type {Array<Object>} 10 Standardized RCS Rich Communication Suite Categories */
     rcsMessageTypes: window.DB_INITIAL ? window.DB_INITIAL.rcsMessageTypes : [],
+
+    /** @type {Array<Object>} 20 Role groups with varying privileges and scope limits */
     groups: JSON.parse(localStorage.getItem('aegis_groups')) || (window.DB_INITIAL ? window.DB_INITIAL.groups : []),
+
+    /** @type {Array<Object>} 300 Slovak & Czech users with unified phone numbers */
     users: JSON.parse(localStorage.getItem('aegis_users')) || (window.DB_INITIAL ? window.DB_INITIAL.users : []),
+
+    /** @type {Array<Object>} Historical log of simulated outbound RCS broadcasts */
     rcsLogs: JSON.parse(localStorage.getItem('aegis_rcs_logs')) || [
       {
         id: 'rcs-log-01',
@@ -28,6 +71,8 @@
         status: 'Delivered'
       }
     ],
+
+    /** @type {Array<Object>} Append-only security audit trail of privileged operations */
     auditLogs: JSON.parse(localStorage.getItem('aegis_audit_logs')) || [
       {
         timestamp: new Date().toISOString(),
@@ -39,13 +84,27 @@
     ]
   };
 
-  // Active Session Persona (Default: Super User / God Mode)
+  /**
+   * Active simulated persona session.
+   * Defaults to the root Super Administrator (Jan Novák / NEXUS-OMNI).
+   * Can be hot-swapped dynamically via the testing panel or switcher modal.
+   * @type {Object}
+   */
   let currentUser = DB.users.find(u => u.groupId === 'grp-super-admin') || DB.users[0];
 
-  // UI State
+  /** @type {string} Current visible tab identifier */
   let activeTab = 'tab-users';
+
+  /** @type {{page: number, pageSize: number}} User pagination state */
   let userPagination = { page: 1, pageSize: 15 };
+
+  /** @type {Set<string>} Set of user IDs selected for batch operations */
   let selectedUserIds = new Set();
+
+  /**
+   * Filtering constraints applied to the Users management view.
+   * Scoped dynamically against the logged-in user's authorized territory.
+   */
   let userFilterState = {
     search: '',
     country: 'ALL',
@@ -55,12 +114,19 @@
     groupId: 'ALL',
     status: 'ALL'
   };
+
+  /** Filtering constraints applied to the Groups grid view */
   let groupFilterState = {
     search: '',
     category: 'ALL'
   };
+
+  /** Temporary memory holding parsed CSV/XLS records awaiting user confirmation */
   let stagedImportUsers = [];
 
+  /**
+   * Flushes current in-memory collections into localStorage for persistence.
+   */
   function saveDB() {
     try {
       localStorage.setItem('aegis_users', JSON.stringify(DB.users));
@@ -71,10 +137,16 @@
       localStorage.setItem('aegis_rcs_logs', JSON.stringify(DB.rcsLogs));
       localStorage.setItem('aegis_audit_logs', JSON.stringify(DB.auditLogs));
     } catch (e) {
-      console.warn('Storage limit reached or localStorage disabled:', e);
+      console.warn('Storage quota exceeded or storage disabled:', e);
     }
   }
 
+  /**
+   * Records a timestamped audit trail record of privileged user actions.
+   * @param {string} action - Brief identifier of operation (e.g., 'User Creation')
+   * @param {string} entity - Resource acted upon (e.g., 'Jan Novák')
+   * @param {string} status - Outcome ('Success' | 'Denied' | 'Warning')
+   */
   function addAuditLog(action, entity, status = 'Success') {
     const entry = {
       timestamp: new Date().toISOString(),
@@ -84,23 +156,34 @@
       status
     };
     DB.auditLogs.unshift(entry);
-    if (DB.auditLogs.length > 100) DB.auditLogs.pop();
+    if (DB.auditLogs.length > 100) DB.auditLogs.pop(); // Keep rolling window of 100 entries
     renderAuditLogs();
   }
 
   // =========================================================================
-  // 2. PRIVILEGE & RESTRICTION VERIFICATION ENGINE
+  // SECTION 2: ACCESS CONTROL & SCOPE RESTRICTION LOGIC
   // =========================================================================
 
+  /**
+   * Retrieves the group definition associated with the active simulated persona.
+   * @returns {Object} Group entity
+   */
   function getCurrentGroup() {
     return DB.groups.find(g => g.id === currentUser.groupId) || DB.groups[0];
   }
 
+  /**
+   * Evaluates whether the currently active user possesses a given capability flag.
+   * Iterates through all categorized privilege arrays inside the active group.
+   * 
+   * @param {string} privilegeKey - e.g. 'create_user', 'view_others_personal', etc.
+   * @returns {boolean} True if granted, false otherwise.
+   */
   function hasPrivilege(privilegeKey) {
     const group = getCurrentGroup();
     if (!group || !group.privileges) return false;
 
-    // Check across all categories
+    // Scan across all privilege buckets (user_mgmt, group_mgmt, personal_info, hierarchy_mgmt)
     for (const cat in group.privileges) {
       const val = group.privileges[cat];
       if (Array.isArray(val) && val.includes(privilegeKey)) return true;
@@ -108,20 +191,35 @@
     return false;
   }
 
+  /**
+   * Enforces Scope Restrictions (Rule 5).
+   * Verifies if a resource in a target country, region, organization, or sub-organization
+   * falls within the purview of the current user's group permissions.
+   * 
+   * @param {string} itemCountry - 'CZ' | 'SK'
+   * @param {string} itemRegionId - e.g. 'reg-cz-prg'
+   * @param {string} itemOrgId - e.g. 'org-cuni'
+   * @param {string} itemSubOrgId - e.g. 'sub-cuni-mff'
+   * @returns {boolean} True if within authorized scope, false if access denied.
+   */
   function canManageScope(itemCountry, itemRegionId, itemOrgId, itemSubOrgId) {
     const group = getCurrentGroup();
     if (!group || !group.scope) return true;
     const scope = group.scope;
 
+    // Check national boundary
     if (scope.country && scope.country !== 'ALL' && itemCountry && itemCountry !== scope.country) {
       return false;
     }
+    // Check regional boundary
     if (scope.regionId && scope.regionId !== 'ALL' && itemRegionId && itemRegionId !== scope.regionId) {
       return false;
     }
+    // Check organizational boundary
     if (scope.orgId && scope.orgId !== 'ALL' && itemOrgId && itemOrgId !== scope.orgId) {
       return false;
     }
+    // Check sub-organizational boundary
     if (scope.subOrgId && scope.subOrgId !== 'ALL' && itemSubOrgId && itemSubOrgId !== scope.subOrgId) {
       return false;
     }
@@ -129,27 +227,33 @@
   }
 
   // =========================================================================
-  // 3. PHONE NUMBER NORMALIZATION & FORMATTING (MANDATORY FORMAT)
-  // Czech: +420 XXX XXX XXX, Slovak: +421 XXX XXX XXX
+  // SECTION 3: MANDATORY UNIFIED PHONE FORMAT ENGINE
   // =========================================================================
 
+  /**
+   * Normalizes raw user input into unified Czech (+420) or Slovak (+421) phone format.
+   * Enforces 3-3-3 chunking: `+420 XXX XXX XXX` or `+421 XXX XXX XXX`.
+   * 
+   * @param {string} val - Raw input string
+   * @returns {string} Clean standardized phone string
+   */
   function formatPhoneNumber(val) {
     if (!val) return '';
-    // Strip everything except digits and plus
+    // Strip everything except digits and plus sign
     let clean = val.replace(/[^\d+]/g, '');
     if (!clean.startsWith('+')) {
       if (clean.startsWith('420') || clean.startsWith('421')) {
         clean = '+' + clean;
       } else if (clean.startsWith('0')) {
-        // default to slovak/czech based on length or prefix
+        // Assume Slovak mobile prefix 09XX -> +421 9XX
         clean = '+421' + clean.substring(1);
       } else {
+        // Fallback default to Czech
         clean = '+420' + clean;
       }
     }
 
-    // Slice segments: +XXX XXX XXX XXX
-    const countryCode = clean.substring(0, 4); // e.g. +420 or +421
+    const countryCode = clean.substring(0, 4); // +420 or +421
     const rest = clean.substring(4).replace(/\D/g, '');
 
     const p1 = rest.substring(0, 3);
@@ -163,15 +267,26 @@
     return formatted;
   }
 
+  /**
+   * Strictly validates that a phone number satisfies the mandatory unified specification.
+   * @param {string} val - Phone string to test
+   * @returns {boolean} True if formatted exactly as `+(420|421) ddd ddd ddd`
+   */
   function validatePhoneNumber(val) {
     if (!val) return false;
     const clean = val.trim();
-    // Must match +420 XXX XXX XXX or +421 XXX XXX XXX exactly
     const re = /^\+(420|421)\s\d{3}\s\d{3}\s\d{3}$/;
     return re.test(clean);
   }
 
-  // Mask sensitive personal info if user does not have permission
+  /**
+   * Privacy Protection Masking (Rule 6.0).
+   * Masks sensitive attributes (e.g. personal phone number, national ID, address)
+   * unless the active session has `view_others_personal` privilege.
+   * 
+   * @param {string} val - Unmasked sensitive value
+   * @returns {string} Unmasked value or `••••••••••••• [Restricted]`
+   */
   function maskSensitive(val) {
     if (!val) return '—';
     if (hasPrivilege('view_others_personal')) return val;
@@ -179,11 +294,17 @@
   }
 
   // =========================================================================
-  // 4. SMART AUTO-NAMING & DUPLICATE PRIVILEGE CHECK
+  // SECTION 4: SMART AUTO-NAMING & DUPLICATE PRIVILEGE CHECKS
   // =========================================================================
 
+  /**
+   * Generates a deterministic JSON hash signature of a group's privilege settings.
+   * Used to detect exact duplicates across different groups.
+   * 
+   * @param {Object} privileges - Group privileges configuration
+   * @returns {string} Canonical JSON representation
+   */
   function computePrivilegeHash(privileges) {
-    // Generate canonical sorted representation of privileges
     const canonical = {
       group: [...(privileges.group_mgmt || [])].sort(),
       user: [...(privileges.user_mgmt || [])].sort(),
@@ -199,28 +320,43 @@
     return JSON.stringify(canonical);
   }
 
+  /**
+   * Verifies if any existing group possesses the identical privilege signature.
+   * Prevents creating or saving redundant duplicate groups.
+   * 
+   * @param {Object} privileges - New/edited privileges
+   * @param {string|null} excludeGroupId - Group ID being edited (to skip self-comparison)
+   * @returns {Object|null} Matching duplicate group, or null if unique.
+   */
   function checkDuplicatePrivileges(privileges, excludeGroupId = null) {
     const targetHash = computePrivilegeHash(privileges);
     for (const grp of DB.groups) {
       if (excludeGroupId && grp.id === excludeGroupId) continue;
       const grpHash = computePrivilegeHash(grp.privileges);
       if (targetHash === grpHash) {
-        return grp; // Clash found!
+        return grp;
       }
     }
     return null;
   }
 
+  /**
+   * Generates a context-aware group name and operational codename
+   * derived from the specific combination of privileges and scope selected.
+   * 
+   * @param {Object} privileges - Granted privilege arrays
+   * @param {Object} scope - Selected scope restrictions
+   * @returns {{name: string, codename: string}} Generated suggestions
+   */
   function generateSmartGroupName(privileges, scope) {
     const parts = [];
     const codenameParts = [];
 
-    // Scope descriptor
+    // Geographical prefix
     let scopePrefix = '';
     if (scope.country === 'CZ') { scopePrefix = 'Czech'; codenameParts.push('CZ'); }
     else if (scope.country === 'SK') { scopePrefix = 'Slovak'; codenameParts.push('SK'); }
 
-    // Capability evaluation
     const uMgmt = privileges.user_mgmt || [];
     const gMgmt = privileges.group_mgmt || [];
     const hMgmt = privileges.hierarchy_mgmt || [];
@@ -251,9 +387,14 @@
   }
 
   // =========================================================================
-  // 5. TOAST & NOTIFICATIONS
+  // SECTION 5: TOAST FEEDBACK NOTIFICATIONS
   // =========================================================================
 
+  /**
+   * Displays an animated toast alert at the bottom-left corner.
+   * @param {string} message - User-facing text
+   * @param {'info'|'success'|'warning'|'danger'} type - Styling token
+   */
   function showToast(message, type = 'info') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
@@ -281,9 +422,13 @@
   }
 
   // =========================================================================
-  // 6. UI RENDERING: TOP BAR & BANNER
+  // SECTION 6: UI RENDERING (HEADER & STATUS BANNER)
   // =========================================================================
 
+  /**
+   * Renders the top application header with active persona metrics:
+   * Avatar, Name, Group badge, Geographic/Organizational breadcrumbs, and Scope Banner.
+   */
   function renderHeader() {
     const group = getCurrentGroup();
     const user = currentUser;
@@ -303,7 +448,7 @@
       headerGroupBadge.title = group.name;
     }
 
-    // Hierarchy Crumbs
+    // Institutional hierarchy breadcrumbs
     const flag = user.country === 'CZ' ? '🇨🇿 CZ' : (user.country === 'SK' ? '🇸🇰 SK' : '🌐 Global');
     const reg = DB.regions.find(r => r.id === user.regionId)?.name || 'Region';
     const org = DB.organizations.find(o => o.id === user.orgId)?.name || 'Organization';
@@ -318,14 +463,14 @@
     const headerSubOrgName = document.getElementById('headerSubOrgName');
     if (headerSubOrgName) headerSubOrgName.textContent = sub;
 
-    // Scope Banner
+    // Scope Restriction Status Banner
     const scopeBanner = document.getElementById('scopeBanner');
     const scopeText = document.getElementById('scopeBannerText');
     if (scopeBanner && scopeText) {
       const scope = group.scope;
       if (!scope || (scope.country === 'ALL' && scope.regionId === 'ALL' && scope.orgId === 'ALL' && scope.subOrgId === 'ALL')) {
         scopeBanner.classList.remove('restricted');
-        scopeText.innerHTML = `Active Scope: <strong>Global (Unrestricted)</strong> — You have purview across all Czech &amp; Slovak institutions.`;
+        scopeText.innerHTML = `Active Scope: <strong>Global (Unrestricted)</strong> — Full administrative purview across Czech &amp; Slovak regions.`;
       } else {
         scopeBanner.classList.add('restricted');
         const scopeParts = [];
@@ -346,22 +491,29 @@
       }
     }
 
-    // Update Testing Panel
     renderTestingPanel();
   }
 
   // =========================================================================
-  // 7. UI RENDERING: USERS TAB
+  // SECTION 7: USERS MANAGEMENT VIEW & PAGINATION
   // =========================================================================
 
+  /**
+   * Filters the master 300-user database against:
+   * 1. Active persona's territorial scope restrictions (Rule 2).
+   * 2. Search query (name, email, mandatory phone, username).
+   * 3. Facet dropdown filters (Country, Region, Organization, Sub-org, Group, Status).
+   * 
+   * @returns {Array<Object>} Filtered user array
+   */
   function getFilteredUsers() {
     return DB.users.filter(user => {
-      // Current user's group scope restriction check
+      // Security Scope Boundary Check
       if (!canManageScope(user.country, user.regionId, user.orgId, user.subOrgId)) {
         return false;
       }
 
-      // UI filter checks
+      // UI Facet filters
       if (userFilterState.country !== 'ALL' && user.country !== userFilterState.country) return false;
       if (userFilterState.regionId !== 'ALL' && user.regionId !== userFilterState.regionId) return false;
       if (userFilterState.orgId !== 'ALL' && user.orgId !== userFilterState.orgId) return false;
@@ -369,7 +521,7 @@
       if (userFilterState.groupId !== 'ALL' && user.groupId !== userFilterState.groupId) return false;
       if (userFilterState.status !== 'ALL' && user.status !== userFilterState.status) return false;
 
-      // Search query
+      // Text search matching
       if (userFilterState.search) {
         const q = userFilterState.search.toLowerCase();
         const matchesName = user.name.toLowerCase().includes(q);
@@ -383,6 +535,9 @@
     });
   }
 
+  /**
+   * Renders the user data table, action buttons, privacy masks, and pagination.
+   */
   function renderUsersTable() {
     const tableBody = document.getElementById('usersTableBody');
     if (!tableBody) return;
@@ -396,7 +551,7 @@
     const metricCount = document.getElementById('metricUserCount');
     if (metricCount) metricCount.textContent = total;
 
-    // Pagination
+    // Pagination calculations
     const page = userPagination.page;
     const pageSize = userPagination.pageSize;
     const totalPages = Math.ceil(total / pageSize) || 1;
@@ -412,7 +567,6 @@
       summary.textContent = total > 0 ? `Showing ${startIdx + 1}–${endIdx} of ${total} users` : 'No users match criteria';
     }
 
-    // Render Rows
     if (pageUsers.length === 0) {
       tableBody.innerHTML = `
         <tr>
@@ -436,12 +590,13 @@
       const flag = user.country === 'CZ' ? '🇨🇿' : '🇸🇰';
       const isSelf = user.id === currentUser.id;
 
-      // Privilege checks for buttons
+      // Granular permissions gating
       const canEdit = isSelf ? hasPrivilege('edit_own_personal') : hasPrivilege('edit_user');
       const canDelete = hasPrivilege('delete_user') && !isSelf;
       const canDisable = hasPrivilege('disable_user') && !isSelf;
       const canChangePwd = hasPrivilege('change_password');
 
+      // Privacy mask on phone
       const maskedPhone = maskSensitive(user.phone);
 
       return `
@@ -501,6 +656,10 @@
     renderBulkActionBar();
   }
 
+  /**
+   * Renders numeric pagination buttons with sliding window.
+   * @param {number} totalPages - Total calculated page count
+   */
   function renderPaginationControls(totalPages) {
     const container = document.getElementById('usersPaginationControls');
     if (!container) return;
@@ -529,6 +688,9 @@
     container.innerHTML = html;
   }
 
+  /**
+   * Toggles the visibility of the bulk selection action bar based on selected users count.
+   */
   function renderBulkActionBar() {
     const bar = document.getElementById('bulkActionBar');
     const label = document.getElementById('bulkSelectedCount');
@@ -544,12 +706,16 @@
   }
 
   // =========================================================================
-  // 8. UI RENDERING: GROUPS TAB
+  // SECTION 8: GROUPS & PRIVILEGES VIEW
   // =========================================================================
 
+  /**
+   * Filters the group catalog respecting category filters and active user scope.
+   * @returns {Array<Object>} Filtered group array
+   */
   function getFilteredGroups() {
     return DB.groups.filter(grp => {
-      // Group scope check against current user's purview
+      // Scope boundary check against current user's purview
       if (currentUser.groupId !== 'grp-super-admin') {
         const myScope = getCurrentGroup().scope;
         if (myScope && myScope.country !== 'ALL' && grp.scope && grp.scope.country !== 'ALL' && grp.scope.country !== myScope.country) {
@@ -569,6 +735,9 @@
     });
   }
 
+  /**
+   * Renders the cards grid for the 20 Groups with privileges breakdown and scope tags.
+   */
   function renderGroupsGrid() {
     const container = document.getElementById('groupsCardsGrid');
     if (!container) return;
@@ -585,7 +754,7 @@
       const canDisableGrp = hasPrivilege('disable_group');
       const canDeleteGrp = hasPrivilege('delete_group') && grp.id !== 'grp-super-admin';
 
-      // Scope summary text
+      // Territorial purview summary
       let scopeDesc = '🌐 Global (Unrestricted)';
       if (grp.scope && (grp.scope.country !== 'ALL' || grp.scope.regionId !== 'ALL' || grp.scope.orgId !== 'ALL')) {
         const parts = [];
@@ -601,7 +770,6 @@
         scopeDesc = `🔒 Scope: ${parts.join(' / ')}`;
       }
 
-      // Privileges summary
       const uCount = (grp.privileges.user_mgmt || []).length;
       const gCount = (grp.privileges.group_mgmt || []).length;
       const hCount = (grp.privileges.hierarchy_mgmt || []).length;
@@ -656,9 +824,13 @@
   }
 
   // =========================================================================
-  // 9. UI RENDERING: HIERARCHY TAB (REGIONS, ORGS, SUB-ORGS)
+  // SECTION 9: HIERARCHY TREE (REGIONS, ORGS, SUB-ORGS)
   // =========================================================================
 
+  /**
+   * Renders the hierarchical tree structure:
+   * Country ➔ Regions ➔ Organizations ➔ Sub-organizations.
+   */
   function renderHierarchy() {
     const container = document.getElementById('hierarchyContainer');
     if (!container) return;
@@ -749,9 +921,16 @@
   }
 
   // =========================================================================
-  // 10. UI RENDERING: RCS MESSAGING STUDIO
+  // SECTION 10: RCS BUSINESS MESSAGING STUDIO (RULES 7 & 8)
   // =========================================================================
 
+  /**
+   * Configures and synchronizes the RCS Messaging Dispatcher.
+   * Gating Rules:
+   * - Senders must belong to a group with `rcs_trigger.allowed = true`.
+   * - Available message types are restricted to sender group's permitted list.
+   * - Recipient groups must possess `rcs_receive.allowed = true` for that type.
+   */
   function renderRcsStudio() {
     const senderSelect = document.getElementById('rcsSenderGroupSelect');
     const typeSelect = document.getElementById('rcsMessageTypeSelect');
@@ -760,13 +939,12 @@
 
     if (!senderSelect || !typeSelect || !targetContainer) return;
 
-    // Groups allowed to trigger RCS
+    // Filter groups allowed to dispatch
     const triggerGroups = DB.groups.filter(g => g.privileges.rcs_trigger?.allowed);
     senderSelect.innerHTML = triggerGroups.map(g => `
       <option value="${g.id}">${g.name} (${g.codeName})</option>
     `).join('');
 
-    // Update allowed types based on selected sender group
     function updateAllowedTypes() {
       const selectedGid = senderSelect.value;
       const group = DB.groups.find(g => g.id === selectedGid);
@@ -787,7 +965,6 @@
       updateRcsPreview();
     }
 
-    // Update recipient groups allowed to receive this message type
     function updateRecipientGroups() {
       const activeTypeId = typeSelect.value;
       const receiveGroups = DB.groups.filter(g => {
@@ -813,7 +990,7 @@
 
     updateAllowedTypes();
 
-    // Render History
+    // Render historical dispatch log
     if (historyBody) {
       historyBody.innerHTML = DB.rcsLogs.map(log => {
         const sGroup = DB.groups.find(g => g.id === log.senderGroupId)?.name || log.senderGroupId;
@@ -834,6 +1011,9 @@
     }
   }
 
+  /**
+   * Updates the smartphone visual mockup in real time.
+   */
   function updateRcsPreview() {
     const title = document.getElementById('rcsMsgTitle')?.value || 'System Notice';
     const body = document.getElementById('rcsMsgBody')?.value || '';
@@ -853,9 +1033,12 @@
   }
 
   // =========================================================================
-  // 11. UI RENDERING: AUDIT LOGS
+  // SECTION 11: AUDIT TRAIL LOGGING
   // =========================================================================
 
+  /**
+   * Renders the live security audit events table.
+   */
   function renderAuditLogs() {
     const tableBody = document.getElementById('auditLogsTableBody');
     if (!tableBody) return;
@@ -872,10 +1055,13 @@
   }
 
   // =========================================================================
-  // 12. FLOATING TESTING PANEL & SIMULATION CONTROLS
-  // Draggable, Minimizable, Distinct Amber/Warning Scheme
+  // SECTION 12: FLOATING TESTING SIMULATOR (DRAGGABLE & MINIMIZABLE)
   // =========================================================================
 
+  /**
+   * Initializes drag-and-drop pointer physics and minimize toggles
+   * for the "FOR TESTING PURPOSES ONLY" floating panel.
+   */
   function setupFloatingTestingPanel() {
     const panel = document.getElementById('floatingTestPanel');
     const header = document.getElementById('testPanelHeader');
@@ -885,7 +1071,6 @@
 
     if (!panel || !header) return;
 
-    // Draggable Logic (Mouse & Touch)
     let isDragging = false;
     let startX = 0, startY = 0;
     let initialLeft = 0, initialTop = 0;
@@ -929,7 +1114,7 @@
       let newLeft = initialLeft + dx;
       let newTop = initialTop + dy;
 
-      // Bound to viewport
+      // Keep within screen boundaries
       const pad = 10;
       newLeft = Math.max(pad, Math.min(window.innerWidth - panel.offsetWidth - pad, newLeft));
       newTop = Math.max(pad, Math.min(window.innerHeight - panel.offsetHeight - pad, newTop));
@@ -947,7 +1132,6 @@
       document.removeEventListener('touchend', stopDrag);
     }
 
-    // Minimize & Close
     if (btnMin) {
       btnMin.onclick = () => {
         panel.classList.toggle('minimized');
@@ -971,6 +1155,10 @@
     }
   }
 
+  /**
+   * Refreshes the breakdown of granted and restricted permissions
+   * displayed within the testing panel.
+   */
   function renderTestingPanel() {
     const user = currentUser;
     const group = getCurrentGroup();
@@ -987,7 +1175,6 @@
     if (pCode) pCode.textContent = group.codeName;
     if (dockShort) dockShort.textContent = `${user.firstName} (${group.codeName})`;
 
-    // Scope text
     let scopeDesc = 'Scope: Global (Unrestricted)';
     if (group.scope && (group.scope.country !== 'ALL' || group.scope.regionId !== 'ALL' || group.scope.orgId !== 'ALL')) {
       const parts = [];
@@ -998,7 +1185,6 @@
     }
     if (pScope) pScope.textContent = scopeDesc;
 
-    // Permissions List
     if (pList) {
       const allCheckKeys = [
         { key: 'create_group', label: 'Create Grp' },
@@ -1026,7 +1212,11 @@
     }
   }
 
-  // Switch Active Session
+  /**
+   * Switches the active simulation session to another user account.
+   * Immediately re-evaluates all scoped UI views and permissions.
+   * @param {string} userId - Target user identifier
+   */
   function switchActiveUser(userId) {
     const user = DB.users.find(u => u.id === userId);
     if (!user) return;
@@ -1045,7 +1235,9 @@
     showToast(`Simulating active session as: ${user.name} (${getCurrentGroup().name})`, 'info');
   }
 
-  // God Mode Activation (Eye of Providence Triangle Eye)
+  /**
+   * Restores God Mode (Super Administrator persona with all privileges unrestricted).
+   */
   function activateGodMode() {
     const godUser = DB.users.find(u => u.groupId === 'grp-super-admin') || DB.users[0];
     switchActiveUser(godUser.id);
@@ -1053,9 +1245,13 @@
   }
 
   // =========================================================================
-  // 13. MODALS LOGIC: USER CREATE/EDIT
+  // SECTION 13: USER MODALS (CREATE & EDIT)
   // =========================================================================
 
+  /**
+   * Opens the Create/Edit User modal dialog.
+   * @param {Object|null} user - Existing user or null for new creation
+   */
   function openUserModal(user = null) {
     const modal = document.getElementById('modalUser');
     const title = document.getElementById('modalUserTitle');
@@ -1063,11 +1259,8 @@
     if (!modal || !form) return;
 
     form.reset();
-
-    // Populate Region, Org, Sub-Org Selects
     populateHierarchySelects();
 
-    // Populate Group Select
     const groupSelect = document.getElementById('userGroupSelect');
     if (groupSelect) {
       groupSelect.innerHTML = DB.groups.map(g => `
@@ -1104,6 +1297,9 @@
     modal.classList.add('active');
   }
 
+  /**
+   * Dynamically cascades Region ➔ Organization ➔ Sub-organization selections.
+   */
   function populateHierarchySelects() {
     const regSelect = document.getElementById('userRegionSelect');
     const orgSelect = document.getElementById('userOrgSelect');
@@ -1141,6 +1337,11 @@
     updateOrgs();
   }
 
+  /**
+   * Handles user creation and mutation submission.
+   * Enforces mandatory phone validation rule (+420 / +421 area code).
+   * @param {Event} e - Submit event
+   */
   function handleSaveUser(e) {
     e.preventDefault();
     const id = document.getElementById('userIdInput').value;
@@ -1151,7 +1352,7 @@
     const rawPhone = document.getElementById('userPhone').value.trim();
     const formattedPhone = formatPhoneNumber(rawPhone);
 
-    // Mandatory Phone Validation (Rule)
+    // Rule 0.0: Mandatory Unified Phone Number Validation
     if (!validatePhoneNumber(formattedPhone)) {
       showToast('Mandatory phone format error! Must be unified: +420 XXX XXX XXX or +421 XXX XXX XXX', 'danger');
       return;
@@ -1173,7 +1374,6 @@
     };
 
     if (id) {
-      // Edit User
       const user = DB.users.find(u => u.id === id);
       if (user) {
         user.firstName = first;
@@ -1194,7 +1394,6 @@
         showToast(`User ${user.name} successfully updated.`, 'success');
       }
     } else {
-      // Create User
       const newUser = {
         id: `usr-${String(DB.users.length + 1).padStart(3, '0')}`,
         username,
@@ -1225,9 +1424,13 @@
   }
 
   // =========================================================================
-  // 14. MODALS LOGIC: GROUP CREATE/EDIT & DUPLICATE CHECK
+  // SECTION 14: GROUP MODALS & DUPLICATE PROTECTION
   // =========================================================================
 
+  /**
+   * Opens the Create/Edit Group modal dialog.
+   * @param {Object|null} group - Existing group or null for creation
+   */
   function openGroupModal(group = null) {
     const modal = document.getElementById('modalGroup');
     const title = document.getElementById('modalGroupTitle');
@@ -1236,7 +1439,6 @@
 
     form.reset();
 
-    // Populate Scope Selects
     const scopeReg = document.getElementById('groupScopeRegion');
     const scopeOrg = document.getElementById('groupScopeOrg');
     const scopeSub = document.getElementById('groupScopeSubOrg');
@@ -1257,7 +1459,6 @@
       `).join('');
     }
 
-    // Populate 10 RCS Types Pills for Trigger & Receive
     renderRcsPillSelectors();
 
     if (group) {
@@ -1275,7 +1476,6 @@
         document.getElementById('groupScopeSubOrg').value = group.scope.subOrgId || 'ALL';
       }
 
-      // Populate Checkboxes
       setPrivilegeCheckboxes(group.privileges);
     } else {
       title.textContent = 'Create New Group';
@@ -1285,6 +1485,9 @@
     modal.classList.add('active');
   }
 
+  /**
+   * Renders the 10 RCS pill buttons for message category selection.
+   */
   function renderRcsPillSelectors() {
     const trigContainer = document.getElementById('rcsTriggerTypesList');
     const recvContainer = document.getElementById('rcsReceiveTypesList');
@@ -1306,6 +1509,10 @@
     }
   }
 
+  /**
+   * Aggregates privilege selections from the group creation modal.
+   * @returns {Object} Privileges object
+   */
   function getPrivilegesFromForm() {
     const getChecked = containerId => {
       const container = document.getElementById(containerId);
@@ -1343,6 +1550,10 @@
     };
   }
 
+  /**
+   * Syncs existing group privileges onto form checkboxes and pill states.
+   * @param {Object} privileges - Privileges schema
+   */
   function setPrivilegeCheckboxes(privileges) {
     if (!privileges) return;
     document.querySelectorAll('.priv-check').forEach(chk => {
@@ -1355,7 +1566,7 @@
       }
     });
 
-    // RCS Trigger
+    // RCS Trigger controls
     const trigAllowedCheck = document.getElementById('rcsTriggerAllowedCheck');
     const trigOptionsBlock = document.getElementById('rcsTriggerOptionsBlock');
     const trigTypesList = document.getElementById('rcsTriggerTypesList');
@@ -1369,14 +1580,13 @@
         document.getElementById('rcsTriggerSomeRadio').checked = true;
         if (trigTypesList) trigTypesList.style.display = 'flex';
       }
-      // Select pills
       const types = privileges.rcs_trigger?.types || [];
       document.querySelectorAll('#rcsTriggerTypesList .rcs-pill').forEach(pill => {
         pill.classList.toggle('selected', types.includes(pill.dataset.typeId));
       });
     }
 
-    // RCS Receive
+    // RCS Receive controls
     const recvAllowedCheck = document.getElementById('rcsReceiveAllowedCheck');
     const recvOptionsBlock = document.getElementById('rcsReceiveOptionsBlock');
     const recvTypesList = document.getElementById('rcsReceiveTypesList');
@@ -1397,6 +1607,10 @@
     }
   }
 
+  /**
+   * Saves a group while checking against duplicate privileges across existing groups.
+   * @param {Event} e - Form submission event
+   */
   function handleSaveGroup(e) {
     e.preventDefault();
     const id = document.getElementById('groupIdInput').value;
@@ -1414,7 +1628,7 @@
 
     const privileges = getPrivilegesFromForm();
 
-    // Check Rule: Warn and DO NOT ALLOW if there is already a group with these exact privileges
+    // Enforce Rule: Warn and DO NOT ALLOW if there is already a group with these exact privileges
     const duplicate = checkDuplicatePrivileges(privileges, id || null);
     const alertBox = document.getElementById('duplicatePrivilegeAlert');
     const alertMsg = document.getElementById('duplicatePrivilegeMsg');
@@ -1431,7 +1645,6 @@
     }
 
     if (id) {
-      // Edit Group
       const grp = DB.groups.find(g => g.id === id);
       if (grp) {
         grp.name = name;
@@ -1445,7 +1658,6 @@
         showToast(`Group ${grp.name} updated successfully.`, 'success');
       }
     } else {
-      // Create Group
       const newGrp = {
         id: `grp-${Date.now().toString(36)}`,
         name,
@@ -1468,9 +1680,12 @@
   }
 
   // =========================================================================
-  // 15. CSV / XLS USER IMPORT (RULE 3.2)
+  // SECTION 15: CSV / XLS USER IMPORT (RULE 3.2)
   // =========================================================================
 
+  /**
+   * Opens the file import modal dialog.
+   */
   function openImportModal() {
     const modal = document.getElementById('modalImport');
     const targetSelect = document.getElementById('importTargetGroup');
@@ -1487,6 +1702,10 @@
     modal.classList.add('active');
   }
 
+  /**
+   * Reads raw file bytes and sends text content to parser.
+   * @param {File} file - Browser file object
+   */
   function handleCsvFile(file) {
     const reader = new FileReader();
     reader.onload = function (e) {
@@ -1496,6 +1715,11 @@
     reader.readAsText(file);
   }
 
+  /**
+   * Line-by-line CSV parser with phone normalization and validation.
+   * Highlights valid vs error rows in live preview before commit.
+   * @param {string} text - Raw CSV content
+   */
   function parseAndValidateCsv(text) {
     const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
     if (lines.length < 2) {
@@ -1571,6 +1795,9 @@
     document.getElementById('btnCommitImport').disabled = validRows.length === 0;
   }
 
+  /**
+   * Commits the validated staging user roster into the master database.
+   */
   function commitImportUsers() {
     if (stagedImportUsers.length === 0) return;
     const targetGroupId = document.getElementById('importTargetGroup').value;
@@ -1612,6 +1839,9 @@
     showToast(`Successfully imported ${added} users with validated mandatory phone numbers!`, 'success');
   }
 
+  /**
+   * Generates and downloads a sample CSV file pre-formatted with unified phones.
+   */
   function downloadSampleCsv() {
     const csvContent = 
 `first_name,last_name,email,mandatory_phone,region_code
@@ -1628,9 +1858,13 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
   }
 
   // =========================================================================
-  // 16. PASSWORD MANAGEMENT MODAL (RULES 6.5, 6.6, 6.7)
+  // SECTION 16: PASSWORD LIFECYCLE (RULES 6.5, 6.6, 6.7)
   // =========================================================================
 
+  /**
+   * Opens the password modal with custom password, generator, or recovery OTP modes.
+   * @param {string} userId - Target user ID
+   */
   function openPasswordModal(userId) {
     const user = DB.users.find(u => u.id === userId);
     if (!user) return;
@@ -1646,7 +1880,6 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
     targetInput.value = user.id;
     if (phoneDisplay) phoneDisplay.value = user.phone;
 
-    // Reset password mode tabs
     switchPwdMode('change');
     generateCryptoPassword();
 
@@ -1665,6 +1898,9 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
     if (mode === 'retrieve') document.getElementById('pwdModeRetrieve').style.display = 'block';
   }
 
+  /**
+   * Generates a high-entropy 16-character cryptographic random password.
+   */
   function generateCryptoPassword() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*+=-';
     let pwd = '';
@@ -1677,6 +1913,10 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
     if (input) input.value = pwd;
   }
 
+  /**
+   * Evaluates and updates password strength score indicators.
+   * @param {string} val - Entered password
+   */
   function evaluatePasswordStrength(val) {
     const bar = document.getElementById('pwdStrengthBar');
     const text = document.getElementById('pwdStrengthText');
@@ -1704,7 +1944,7 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
   }
 
   // =========================================================================
-  // 17. REBRANDING & THEME ENGINE
+  // SECTION 17: REBRANDING & DYNAMIC THEMES
   // =========================================================================
 
   const THEME_PRESETS = [
@@ -1716,6 +1956,9 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
     { name: 'Royal Amethyst', hue: 262, sat: 83, lit: 58, hex: '#7c3aed' }
   ];
 
+  /**
+   * Initializes the slide-over drawer for rebranding colors, fonts & borders.
+   */
   function setupRebrandDrawer() {
     const drawer = document.getElementById('rebrandDrawer');
     const backdrop = document.getElementById('rebrandDrawerBackdrop');
@@ -1758,7 +2001,6 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       backdrop.classList.remove('active');
     }
 
-    // Custom Color Input
     if (colorPicker) {
       colorPicker.oninput = (e) => {
         const hex = e.target.value;
@@ -1767,7 +2009,6 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       };
     }
 
-    // Font Selector
     if (fontSelect) {
       fontSelect.onchange = (e) => {
         document.documentElement.style.setProperty('--font-sans', e.target.value);
@@ -1775,7 +2016,6 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       };
     }
 
-    // Corner Radius
     document.querySelectorAll('.radius-btn').forEach(btn => {
       btn.onclick = () => {
         document.querySelectorAll('.radius-btn').forEach(b => b.classList.remove('active'));
@@ -1809,7 +2049,6 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
   }
 
   function applyHexColor(hex) {
-    // Convert hex to HSL
     let c = hex.substring(1);
     if (c.length === 3) c = c.split('').map(x => x + x).join('');
     const r = parseInt(c.substring(0, 2), 16) / 255;
@@ -1835,9 +2074,13 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
   }
 
   // =========================================================================
-  // 18. INITIALIZATION & EVENT DELEGATION
+  // SECTION 18: EVENT BINDINGS & LIFECYCLE INITIALIZATION
   // =========================================================================
 
+  /**
+   * Master application bootstrapper.
+   * Attaches event listeners, populates selects, and runs initial render passes.
+   */
   function initApp() {
     renderHeader();
     renderUsersTable();
@@ -1848,7 +2091,7 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
     setupFloatingTestingPanel();
     setupRebrandDrawer();
 
-    // Tab Navigation
+    // Tab switcher navigation
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.onclick = () => {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -1862,7 +2105,7 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       };
     });
 
-    // Dark Mode Toggle
+    // Dark/Light Theme Toggle
     const themeToggle = document.getElementById('btnThemeToggle');
     const iconSun = document.getElementById('themeIconSun');
     const iconMoon = document.getElementById('themeIconMoon');
@@ -1876,7 +2119,7 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       };
     }
 
-    // Modal Close buttons
+    // Modal Close handlers
     document.querySelectorAll('.modal-close-btn').forEach(btn => {
       btn.onclick = () => {
         const target = btn.dataset.close;
@@ -1885,26 +2128,25 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       };
     });
 
-    // Close on backdrop click
     document.querySelectorAll('.modal-backdrop').forEach(modal => {
       modal.onclick = (e) => {
         if (e.target === modal) modal.classList.remove('active');
       };
     });
 
-    // God Mode Trigger
+    // God Mode Triggers
     const btnGodHeader = document.getElementById('btnGodModeHeader');
     const btnGodTest = document.getElementById('btnGodModeTestPanel');
     if (btnGodHeader) btnGodHeader.onclick = activateGodMode;
     if (btnGodTest) btnGodTest.onclick = activateGodMode;
 
-    // Switch Persona Modal
+    // Persona Switcher Triggers
     const btnSwitchH = document.getElementById('btnOpenUserSwitcherHeader');
     const btnSwitchP = document.getElementById('btnSwitchPersonaTestPanel');
     if (btnSwitchH) btnSwitchH.onclick = openPersonaSwitcherModal;
     if (btnSwitchP) btnSwitchP.onclick = openPersonaSwitcherModal;
 
-    // Live Phone Formatting on Input
+    // Live Mandatory Phone Auto-formatting
     const phoneInput = document.getElementById('userPhone');
     if (phoneInput) {
       phoneInput.oninput = (e) => {
@@ -1913,7 +2155,7 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       };
     }
 
-    // User Search & Filters
+    // Search bar
     const searchInp = document.getElementById('userSearchInput');
     if (searchInp) {
       searchInp.oninput = (e) => {
@@ -1934,10 +2176,8 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       }
     });
 
-    // Populate Filter Selects for Users Tab
     populateUserFilters();
 
-    // Reset Filters
     const btnResetFilters = document.getElementById('btnResetUserFilters');
     if (btnResetFilters) {
       btnResetFilters.onclick = () => {
@@ -1951,7 +2191,7 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       };
     }
 
-    // User Row Selection (Checkboxes)
+    // Select All Checkbox
     const selectAllCheck = document.getElementById('checkSelectAllUsers');
     if (selectAllCheck) {
       selectAllCheck.onchange = (e) => {
@@ -1965,7 +2205,7 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       };
     }
 
-    // User Table Click Actions (Event delegation)
+    // Event Delegation: User Table Actions
     const usersTable = document.getElementById('usersTable');
     if (usersTable) {
       usersTable.onclick = (e) => {
@@ -2040,7 +2280,6 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       };
     }
 
-    // Create User Trigger
     const btnCreateUser = document.getElementById('btnOpenCreateUser');
     if (btnCreateUser) {
       btnCreateUser.onclick = () => {
@@ -2052,11 +2291,9 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       };
     }
 
-    // User Form Submit
     const formUser = document.getElementById('formUser');
     if (formUser) formUser.onsubmit = handleSaveUser;
 
-    // Create Group Trigger
     const btnCreateGroup = document.getElementById('btnOpenCreateGroup');
     if (btnCreateGroup) {
       btnCreateGroup.onclick = () => {
@@ -2068,11 +2305,10 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       };
     }
 
-    // Group Form Submit
     const formGroup = document.getElementById('formGroup');
     if (formGroup) formGroup.onsubmit = handleSaveGroup;
 
-    // Auto-suggest group name
+    // Auto-Suggest Group Name button
     const btnAutoSuggest = document.getElementById('btnAutoSuggestGroupName');
     if (btnAutoSuggest) {
       btnAutoSuggest.onclick = () => {
@@ -2087,7 +2323,7 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       };
     }
 
-    // Select all privileges helper buttons in modal
+    // Select All Privileges helper
     document.querySelectorAll('.select-all-btn').forEach(btn => {
       btn.onclick = () => {
         const target = btn.dataset.target;
@@ -2101,7 +2337,7 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       };
     });
 
-    // RCS Pills Selection Logic
+    // RCS Pills Selection
     document.addEventListener('click', (e) => {
       const pill = e.target.closest('.rcs-pill');
       if (pill) {
@@ -2109,7 +2345,6 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       }
     });
 
-    // RCS Trigger & Receive Checkbox Toggles
     const rcsTrigChk = document.getElementById('rcsTriggerAllowedCheck');
     if (rcsTrigChk) {
       rcsTrigChk.onchange = () => {
@@ -2247,7 +2482,7 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       };
     }
 
-    // Bulk Actions Trigger
+    // Bulk Actions Setup
     const btnBulkChangeGrp = document.getElementById('btnBulkChangeGroup');
     const btnBulkChangeStat = document.getElementById('btnBulkChangeStatus');
     const btnBulkDel = document.getElementById('btnBulkDelete');
@@ -2323,7 +2558,7 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       };
     }
 
-    // Password Management Tabs
+    // Password Management Modes
     document.querySelectorAll('.pwd-tab-btn').forEach(btn => {
       btn.onclick = () => switchPwdMode(btn.dataset.pwdMode);
     });
@@ -2368,7 +2603,7 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       };
     }
 
-    // RCS Form Dispatch
+    // RCS Form Dispatch Handler
     const rcsForm = document.getElementById('rcsDispatchForm');
     if (rcsForm) {
       rcsForm.onsubmit = (e) => {
@@ -2406,7 +2641,6 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       if (el) el.oninput = updateRcsPreview;
     });
 
-    // Clear Audit Logs
     const btnClearAudit = document.getElementById('btnClearAuditLogs');
     if (btnClearAudit) {
       btnClearAudit.onclick = () => {
@@ -2417,7 +2651,7 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       };
     }
 
-    // Hierarchy Add Buttons
+    // Hierarchy Add Modal Triggers
     const btnAddReg = document.getElementById('btnAddRegionBtn');
     const btnAddOrg = document.getElementById('btnAddOrgBtn');
     const btnAddSub = document.getElementById('btnAddSubOrgBtn');
@@ -2426,7 +2660,7 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
     if (btnAddOrg) btnAddOrg.onclick = () => openHierarchyModal('org');
     if (btnAddSub) btnAddSub.onclick = () => openHierarchyModal('sub');
 
-    // Random User Persona
+    // Random User Simulation Button
     const btnRand = document.getElementById('btnRandomUserTestPanel');
     if (btnRand) {
       btnRand.onclick = () => {
@@ -2464,7 +2698,9 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
     }
   }
 
-  // Persona Switcher Modal (Rule 7 Testing)
+  /**
+   * Opens the Persona Switcher modal dialog for testing purposes.
+   */
   function openPersonaSwitcherModal() {
     const modal = document.getElementById('modalPersonaSwitcher');
     const grpFilter = document.getElementById('personaFilterGroup');
@@ -2558,8 +2794,11 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
     modal.classList.add('active');
   }
 
-  // Hierarchy Add / Edit Modal
-  function openHierarchyModal(type, existingItem = null) {
+  /**
+   * Opens the hierarchy modal to add or edit Region, Organization, or Sub-organization.
+   * @param {'region'|'org'|'sub'} type - Level of hierarchy
+   */
+  function openHierarchyModal(type) {
     const modal = document.getElementById('modalHierarchy');
     const title = document.getElementById('hierarchyModalTitle');
     const levelInput = document.getElementById('hierarchyLevelType');
@@ -2641,7 +2880,7 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
     modal.classList.add('active');
   }
 
-  // Run on DOM ready
+  // Self-boot on document ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
   } else {

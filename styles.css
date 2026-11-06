@@ -1225,6 +1225,19 @@ body {
   gap: 0.4rem;
 }
 
+.test-panel-disclaimer {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 6px;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.715rem;
+  color: #fbbf24;
+  line-height: 1.35;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+}
+
 .test-badge-user {
   font-weight: 700;
   color: #38bdf8;

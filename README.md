@@ -225,6 +225,9 @@ The **Testing Simulator** panel enables testers to evaluate access permissions a
 ├──────────────────────────────────────────────┤
 │ ⠿ CLICK & DRAG ANYWHERE ON SCREEN ⠿          │
 ├──────────────────────────────────────────────┤
+│ ℹ️ NOTICE: All names & profiles are 100%     │
+│   FICTIONAL for simulation purposes only.    │
+├──────────────────────────────────────────────┤
 │ Active Persona: Jan Novák                    │
 │ Role: Super Administrators [NEXUS-OMNI]      │
 │ Scope: Global (Unrestricted)                 │
@@ -239,10 +242,11 @@ The **Testing Simulator** panel enables testers to evaluate access permissions a
 └──────────────────────────────────────────────┘
 ```
 
+- **Fictional Data Disclaimer**: A clear amber notice marks all 300 user identities, names, phone numbers, and addresses as completely fictional synthetic entities.
 - **Drag & Drop**: Grab the amber header to position the panel anywhere on screen (mouse and touch enabled).
-- **Minimizable**: Collapse into a neat floating dock pill button (`🧪 Testing Simulator`).
+- **Minimizable**: Collapse into a neat floating dock pill button (`🧪 Testing Simulator (Fictional Data)`).
 - **Eye of Providence (👁️⃤)**: One-click restore to root Super Administrator with unrestricted capabilities.
-- **Role Switching**: Search or filter across 300 real Czech & Slovak profiles to simulate exact permissions and UI boundaries.
+- **Role Switching**: Search or filter across 300 fictional Czech & Slovak profiles to simulate exact permissions and UI boundaries.
 
 ---
 

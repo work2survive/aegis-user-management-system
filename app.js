@@ -53,11 +53,14 @@
     /** @type {Array<Object>} 10 Standardized RCS Rich Communication Suite Categories */
     rcsMessageTypes: window.DB_INITIAL ? window.DB_INITIAL.rcsMessageTypes : [],
 
-    /** @type {Array<Object>} 20 Role groups with varying privileges and scope limits */
+    /** @type {Array<Object>} 22 Role groups with varying privileges and scope limits */
     groups: JSON.parse(localStorage.getItem('aegis_groups')) || (window.DB_INITIAL ? window.DB_INITIAL.groups : []),
 
     /** @type {Array<Object>} 300 Slovak & Czech users with unified phone numbers */
     users: JSON.parse(localStorage.getItem('aegis_users')) || (window.DB_INITIAL ? window.DB_INITIAL.users : []),
+
+    /** @type {Array<Object>} Catalog of Emergency & Standard RCS Message Templates (Evacuations, Lockdowns, Weather) */
+    rcsTemplates: JSON.parse(localStorage.getItem('aegis_rcs_templates')) || getDefaultRcsTemplates(),
 
     /** @type {Array<Object>} Historical log of simulated outbound RCS broadcasts */
     rcsLogs: JSON.parse(localStorage.getItem('aegis_rcs_logs')) || [
@@ -83,6 +86,130 @@
       }
     ]
   };
+
+  // Synchronize new seed groups & accountType into cached memory
+  if (window.DB_INITIAL) {
+    window.DB_INITIAL.groups.forEach(initGrp => {
+      const existing = DB.groups.find(g => g.id === initGrp.id);
+      if (!existing) {
+        DB.groups.push(initGrp);
+      } else if (!existing.accountType) {
+        existing.accountType = initGrp.accountType || (existing.id.includes('student') || existing.id.includes('alumni-members') ? 'contact_only' : 'interactive');
+      }
+    });
+
+    DB.groups.forEach(g => {
+      if (!g.accountType) {
+        g.accountType = (g.id.includes('student') || g.id.includes('alumni-members')) ? 'contact_only' : 'interactive';
+      }
+    });
+
+    window.DB_INITIAL.users.forEach(initUsr => {
+      if (initUsr.groupId.includes('student')) {
+        const u = DB.users.find(usr => usr.id === initUsr.id);
+        if (u) {
+          u.groupId = initUsr.groupId;
+          u.orgId = initUsr.orgId;
+          u.regionId = initUsr.regionId;
+          u.country = initUsr.country;
+        }
+      }
+    });
+  }
+
+  /**
+   * Generates initial pre-configured Emergency and Safety alert templates.
+   * Spans generic global directives, regional notices, and school-specific muster plans.
+   * @returns {Array<Object>}
+   */
+  function getDefaultRcsTemplates() {
+    return [
+      {
+        id: 'tpl-evac-immediate',
+        title: '🚨 Okamžitá evakuácia budovy / Immediate Evacuation Directive',
+        category: 'Critical',
+        scopeType: 'global',
+        targetId: 'ALL',
+        body: 'POZOR VŠETKÝM ŠTUDENTOM A ZAMESTNANCOM: Okamžite opustite budovu po vyznačených únikových cestách. Výťahy sú vyradené z prevádzky. Zhromaždite sa na vonkajšom núdzovom zhromaždisku. Zachovajte pokoj.',
+        actionLabel: '✅ Potvrdiť evakuáciu (Som v bezpečí)',
+        actionUrl: 'https://aegis.edu.sk/emergency/evacuation-checkin',
+        isCustom: false,
+        createdBy: 'National Civil Protection Directive'
+      },
+      {
+        id: 'tpl-lockdown-threat',
+        title: '🔒 Bezpečnostný Lockdown (Úkryt & Barikáda) / Active Threat',
+        category: 'Critical',
+        scopeType: 'global',
+        targetId: 'ALL',
+        body: 'BEZPEČNOSTNÝ POPLACH: Okamžite sa uzamknite a zabarikádujte v najbližšej miestnosti. Zhasnite svetlá, stíšte mobilné telefóny, odstúpte od okien a ľahnite si na podlahu. Nevychádzajte až do príchodu polície.',
+        actionLabel: '🔒 Potvrdiť úkryt (Sheltered)',
+        actionUrl: 'https://aegis.edu.sk/emergency/lockdown-status',
+        isCustom: false,
+        createdBy: 'National Security Protocol'
+      },
+      {
+        id: 'tpl-weather-hazard',
+        title: '⚠️ Výstraha pred extrémnym počasím / Severe Weather Hazard',
+        category: 'Critical',
+        scopeType: 'global',
+        targetId: 'ALL',
+        body: 'Meteorologická výstraha 3. stupňa (orkan a prívalové zrážky). Zákaz opúšťania areálu školy/univerzity. Všetka prezenčná výučba je prerušená, zotrvajte vo vnútorných priestoroch.',
+        actionLabel: 'ℹ️ Zobraziť bezpečnostné pokyny',
+        actionUrl: 'https://aegis.edu.sk/emergency/weather-advisory',
+        isCustom: false,
+        createdBy: 'Hydrometeorological Institute'
+      },
+      {
+        id: 'tpl-hazmat-leak',
+        title: '🧪 Chemický poplach (Únik nebezpečnej látky) / Hazmat Incident',
+        category: 'Critical',
+        scopeType: 'global',
+        targetId: 'ALL',
+        body: 'Únik nebezpečnej chemickej látky v blízkosti areálu. Okamžite zatvorte a utesnite všetky okná a dvere, vypnite klimatizáciu a vzduchotechniku. Čakajte na ďalšie pokyny integrovaného záchranného systému.',
+        actionLabel: '✅ Potvrdiť utesnenie priestorov',
+        actionUrl: 'https://aegis.edu.sk/emergency/hazmat-response',
+        isCustom: false,
+        createdBy: 'Civil Defense & Fire Service'
+      },
+      {
+        id: 'tpl-reg-prg-transport',
+        title: '🚌 Kolaps dopravy a mimoriadny dištančný režim — Praha',
+        category: 'Operations',
+        scopeType: 'region',
+        targetId: 'reg-cz-prg',
+        body: 'Dopravný podnik hl. m. Prahy hlási havarijné prerušenie trás metra a električiek v okolí univerzitných kampusov. Popoludňajšia výučba prechádza do online dištančného režimu.',
+        actionLabel: '💻 Otvoriť prednáškový portál',
+        actionUrl: 'https://portal.cuni.cz/online-vyuka',
+        isCustom: true,
+        createdBy: 'Praha Regional Education Supervisor'
+      },
+      {
+        id: 'tpl-org-gpost-muster',
+        title: '🏛️ Evakuačný plán a zhromaždisko — Gymnázium Poštová Košice',
+        category: 'Critical',
+        scopeType: 'organization',
+        targetId: 'org-gpost',
+        body: 'Študenti a pedagógovia Gymnázia Poštová 9: V prípade poplachu sa zhromaždite na dvore pri telocvični (Zóna B). Triedni učitelia vykonajú okamžitú prezenčnú kontrolu kontaktov cez RCS.',
+        actionLabel: '📋 Hlásenie triedneho učiteľa',
+        actionUrl: 'https://gpost.eduke.sk/safety/muster-b',
+        isCustom: true,
+        createdBy: 'Gymnázium Poštová Director'
+      },
+      {
+        id: 'tpl-org-cuni-lockdown',
+        title: '🏛️ Bezpečnostný perimeter areálu Karlovej Univerzity',
+        category: 'Critical',
+        scopeType: 'organization',
+        targetId: 'org-cuni',
+        body: 'Bezpečnostná služba UK aktivovala vonkajší uzáver. Vstup a výstup z historických budov fakúlt je uzavretý. Zostaňte v učebniach a postupujte podľa pokynov ostrahy fakulty.',
+        actionLabel: '📞 Kontaktovať dispečing UK',
+        actionUrl: 'https://cuni.cz/safety/security-desk',
+        isCustom: true,
+        createdBy: 'CUNI Campus Security Lead'
+      }
+    ];
+  }
 
   /**
    * Active simulated persona session.
@@ -118,6 +245,13 @@
   /** Filtering constraints applied to the Groups grid view */
   let groupFilterState = {
     search: '',
+    category: 'ALL',
+    accountType: 'ALL'
+  };
+
+  /** Filtering constraints applied to the Emergency Templates catalog view */
+  let templateFilterState = {
+    scope: 'ALL',
     category: 'ALL'
   };
 
@@ -135,6 +269,7 @@
       localStorage.setItem('aegis_sub_orgs', JSON.stringify(DB.subOrganizations));
       localStorage.setItem('aegis_regions', JSON.stringify(DB.regions));
       localStorage.setItem('aegis_rcs_logs', JSON.stringify(DB.rcsLogs));
+      localStorage.setItem('aegis_rcs_templates', JSON.stringify(DB.rcsTemplates));
       localStorage.setItem('aegis_audit_logs', JSON.stringify(DB.auditLogs));
     } catch (e) {
       console.warn('Storage quota exceeded or storage disabled:', e);
@@ -647,11 +782,14 @@
       const isSelf = user.id === currentUser.id;
       const canViewPersonal = isSelf || hasPrivilege('view_others_personal');
 
+      const isContactOnlyUser = group.accountType === 'contact_only';
+
       // Granular permissions gating
       const canEdit = isSelf ? hasPrivilege('edit_own_personal') : (hasPrivilege('edit_user') && hasPrivilege('edit_others_personal') && hasPrivilege('view_others_personal'));
       const canDelete = hasPrivilege('delete_user') && !isSelf;
       const canDisable = hasPrivilege('disable_user') && !isSelf;
-      const canChangePwd = isSelf ? hasPrivilege('change_password') : (hasPrivilege('change_password') && hasPrivilege('edit_others_personal'));
+      // Contact-only roster members never authenticate, so password actions are not applicable
+      const canChangePwd = !isContactOnlyUser && (isSelf ? hasPrivilege('change_password') : (hasPrivilege('change_password') && hasPrivilege('edit_others_personal')));
 
       // Privacy masks on personal details: names & emails (phone numbers are always visible)
       const displayName = maskSensitiveName(user, isSelf);
@@ -719,7 +857,11 @@
             <span class="phone-formatted">${phoneDisplay}</span>
           </td>
           <td>
-            <span class="badge badge-primary" title="${group.name}">${group.codeName}</span>
+            <div style="font-weight: 600; font-size: 0.8rem;">${group.name}</div>
+            <div style="display: flex; gap: 0.35rem; align-items: center; margin-top: 0.2rem; flex-wrap: wrap;">
+              <span class="badge badge-primary" title="${group.name}">${group.codeName}</span>
+              ${isContactOnlyUser ? '<span class="badge badge-warning" style="font-size: 0.65rem;" title="Contact-Only Roster: User never logs in, enrolled for emergency alerts">📱 Contact Only (No Login)</span>' : ''}
+            </div>
           </td>
           <td>
             <div style="display: flex; flex-direction: column;">
@@ -813,6 +955,8 @@
       }
 
       if (groupFilterState.category !== 'ALL' && grp.category !== groupFilterState.category) return false;
+      if (groupFilterState.accountType && groupFilterState.accountType !== 'ALL' && grp.accountType !== groupFilterState.accountType) return false;
+
       if (groupFilterState.search) {
         const q = groupFilterState.search.toLowerCase();
         const m1 = grp.name.toLowerCase().includes(q);
@@ -825,7 +969,7 @@
   }
 
   /**
-   * Renders the cards grid for the 20 Groups with privileges breakdown and scope tags.
+   * Renders the cards grid for the Groups with privileges breakdown, scope tags, and account access types.
    */
   function renderGroupsGrid() {
     const container = document.getElementById('groupsCardsGrid');
@@ -846,6 +990,7 @@
       const canEditGrp = hasPrivilege('edit_group');
       const canDisableGrp = hasPrivilege('disable_group');
       const canDeleteGrp = hasPrivilege('delete_group') && grp.id !== 'grp-super-admin';
+      const isContactOnly = grp.accountType === 'contact_only';
 
       // Territorial purview summary
       let scopeDesc = '🌐 Global (Unrestricted)';
@@ -906,6 +1051,22 @@
         </div>
       ` : '';
 
+      const accessBadge = isContactOnly ?
+        `<span class="badge badge-warning" style="font-size: 0.7rem;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px; vertical-align:-1px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Contact-Only Roster (No Login)</span>` :
+        `<span class="badge badge-primary" style="font-size: 0.7rem;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px; vertical-align:-1px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Interactive Account</span>`;
+
+      const privSummaryHtml = isContactOnly ? `
+        <div class="privileges-summary" style="background: var(--warning-light); border-left: 3px solid var(--warning);">
+          <div style="color: var(--warning); font-weight: 700;">📱 Contact Roster Directory (Never Logs In)</div>
+          <div><strong>RCS Broadcast Alert Receipt:</strong> ${rcsRecv}</div>
+        </div>
+      ` : `
+        <div class="privileges-summary">
+          <div><strong>Privileges:</strong> ${uCount} User ops • ${gCount} Group ops • ${hCount} Hierarchy • ${pCount} Privacy</div>
+          <div><strong>RCS Capabilities:</strong> ${rcsTrig} | ${rcsRecv}</div>
+        </div>
+      `;
+
       return `
         <div class="group-card" data-id="${grp.id}">
           <div class="group-card-header">
@@ -919,15 +1080,13 @@
           <p class="group-desc">${grp.description || 'No description provided.'}</p>
 
           <div class="group-meta-chips">
+            ${accessBadge}
             <span class="scope-chip">👥 ${userCount} users</span>
             <span class="scope-chip">${scopeDesc}</span>
             <span class="scope-chip">🏷️ ${grp.category}</span>
           </div>
 
-          <div class="privileges-summary">
-            <div><strong>Privileges:</strong> ${uCount} User ops • ${gCount} Group ops • ${hCount} Hierarchy • ${pCount} Privacy</div>
-            <div><strong>RCS Capabilities:</strong> ${rcsTrig} | ${rcsRecv}</div>
-          </div>
+          ${privSummaryHtml}
 
           ${footerHtml}
         </div>
@@ -1288,6 +1447,7 @@
     const typeSelect = document.getElementById('rcsMessageTypeSelect');
     const targetContainer = document.getElementById('rcsTargetGroupsContainer');
     const historyBody = document.getElementById('rcsHistoryTableBody');
+    const templateSelect = document.getElementById('rcsEmergencyTemplateSelect');
 
     if (!senderSelect || !typeSelect || !targetContainer) return;
 
@@ -1305,6 +1465,27 @@
     if (sendBtn) sendBtn.style.display = canTriggerRcs ? 'inline-flex' : 'none';
     if (resetBtn) resetBtn.style.display = canTriggerRcs ? 'inline-flex' : 'none';
 
+    function updateEmergencyTemplatesDropdown() {
+      if (!templateSelect) return;
+      const selectedGid = senderSelect.value;
+      const group = DB.groups.find(g => g.id === selectedGid);
+      const sRegion = group?.scope?.regionId || 'ALL';
+      const sOrg = group?.scope?.orgId || 'ALL';
+
+      const applicable = DB.rcsTemplates.filter(t => {
+        if (t.scopeType === 'global') return true;
+        if (t.scopeType === 'region') return sRegion === 'ALL' || t.targetId === sRegion;
+        if (t.scopeType === 'organization') return sOrg === 'ALL' || t.targetId === sOrg;
+        return false;
+      });
+
+      templateSelect.innerHTML = '<option value="">-- Quick Load Emergency Directive / Standard Template --</option>' +
+        applicable.map(t => {
+          const scopeBadge = t.scopeType === 'global' ? '🌐 Generic' : (t.scopeType === 'region' ? '📍 Regional' : '🏫 School');
+          return `<option value="${t.id}">[${scopeBadge}] ${t.title}</option>`;
+        }).join('');
+    }
+
     function updateAllowedTypes() {
       const selectedGid = senderSelect.value;
       const group = DB.groups.find(g => g.id === selectedGid);
@@ -1321,6 +1502,7 @@
         <option value="${m.id}">[${m.category}] ${m.name} — ${m.description}</option>
       `).join('');
 
+      updateEmergencyTemplatesDropdown();
       updateRecipientGroups();
       updateRcsPreview();
     }
@@ -1334,12 +1516,20 @@
         return (rc.types || []).includes(activeTypeId);
       });
 
-      targetContainer.innerHTML = receiveGroups.map(g => `
-        <label class="checkbox-label" style="background: var(--bg-surface); padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-          <input type="checkbox" class="custom-checkbox rcs-target-check" value="${g.id}" checked>
-          <span>${g.name} (${g.codeName})</span>
-        </label>
-      `).join('');
+      targetContainer.innerHTML = receiveGroups.map(g => {
+        const count = DB.users.filter(u => u.groupId === g.id).length;
+        const isContactOnly = g.accountType === 'contact_only';
+        const typeBadge = isContactOnly 
+          ? '<span class="badge badge-warning" style="font-size: 0.65rem;" title="Enrolled only for emergency broadcast alerts">📱 Contact Roster (No Login)</span>' 
+          : '<span class="badge badge-primary" style="font-size: 0.65rem;">🔑 Staff Account</span>';
+
+        return `
+          <label class="checkbox-label" style="background: var(--bg-surface); padding: 0.35rem 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: inline-flex; align-items: center; gap: 0.4rem;">
+            <input type="checkbox" class="custom-checkbox rcs-target-check" value="${g.id}" checked>
+            <span><strong>${g.name}</strong> (${g.codeName}) • <span style="color:var(--text-muted); font-size: 0.75rem;">${count} contacts</span> ${typeBadge}</span>
+          </label>
+        `;
+      }).join('');
     }
 
     senderSelect.onchange = updateAllowedTypes;
@@ -1347,6 +1537,15 @@
       updateRecipientGroups();
       updateRcsPreview();
     };
+
+    if (templateSelect) {
+      templateSelect.onchange = (e) => {
+        const tid = e.target.value;
+        if (tid) {
+          loadEmergencyTemplateIntoDispatcher(tid);
+        }
+      };
+    }
 
     updateAllowedTypes();
 
@@ -1368,6 +1567,300 @@
           </tr>
         `;
       }).join('');
+    }
+
+    renderEmergencyTemplateCatalog();
+  }
+
+  /**
+   * Loads an emergency template directly into the live RCS Dispatcher and switches to it.
+   * @param {string} tid - Template ID
+   */
+  function loadEmergencyTemplateIntoDispatcher(tid) {
+    const tpl = DB.rcsTemplates.find(t => t.id === tid);
+    if (!tpl) return;
+
+    // Switch subtab to dispatcher if on templates view
+    const dispView = document.getElementById('rcsDispatcherSubView');
+    const tplView = document.getElementById('rcsTemplatesSubView');
+    const btnDisp = document.getElementById('btnRcsSubtabDispatcher');
+    const btnTpl = document.getElementById('btnRcsSubtabTemplates');
+    if (dispView && tplView) {
+      dispView.style.display = 'block';
+      tplView.style.display = 'none';
+      if (btnDisp) btnDisp.className = 'btn btn-sm btn-primary rcs-subtab-btn';
+      if (btnTpl) btnTpl.className = 'btn btn-sm btn-outline rcs-subtab-btn';
+    }
+
+    const titleInp = document.getElementById('rcsMsgTitle');
+    const bodyInp = document.getElementById('rcsMsgBody');
+    const btnLabelInp = document.getElementById('rcsActionBtnLabel');
+    const btnUrlInp = document.getElementById('rcsActionBtnUrl');
+    const typeSelect = document.getElementById('rcsMessageTypeSelect');
+    const tplSelect = document.getElementById('rcsEmergencyTemplateSelect');
+
+    if (titleInp) titleInp.value = tpl.title;
+    if (bodyInp) bodyInp.value = tpl.body;
+    if (btnLabelInp) btnLabelInp.value = tpl.actionLabel;
+    if (btnUrlInp) btnUrlInp.value = tpl.actionUrl;
+    if (tplSelect) tplSelect.value = tpl.id;
+
+    if (typeSelect) {
+      const hasEmerg = Array.from(typeSelect.options).some(o => o.value === 'rcs-emergency');
+      if (hasEmerg) {
+        typeSelect.value = 'rcs-emergency';
+      }
+    }
+
+    updateRcsPreview();
+    showToast(`Loaded emergency directive: "${tpl.title}"`, 'info');
+  }
+
+  /**
+   * Renders the cards grid for the Emergency Alert Template Catalog.
+   */
+  function renderEmergencyTemplateCatalog() {
+    const grid = document.getElementById('emergencyTemplatesGrid');
+    const btnCreate = document.getElementById('btnOpenCreateTemplate');
+    if (!grid) return;
+
+    // Rule: Hide creation button completely if user lacks privileges
+    const activeGroup = getCurrentGroup();
+    const canCreateTemplates = hasPrivilege('manage_organizations') || hasPrivilege('create_group') || Boolean(activeGroup.privileges?.rcs_trigger?.allowed);
+    if (btnCreate) {
+      btnCreate.style.display = canCreateTemplates ? 'inline-flex' : 'none';
+    }
+
+    const sFilter = templateFilterState.scope;
+    const cFilter = templateFilterState.category;
+
+    const filtered = DB.rcsTemplates.filter(t => {
+      if (sFilter !== 'ALL' && t.scopeType !== sFilter) return false;
+      if (cFilter !== 'ALL' && t.category !== cFilter) return false;
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      grid.innerHTML = `
+        <div style="grid-column: 1 / -1; padding: 2.5rem; text-align: center; background: var(--bg-surface); border: 1px dashed var(--border-color); border-radius: var(--radius-md);">
+          <div style="font-size: 2rem; margin-bottom: 0.5rem;">📋</div>
+          <div style="font-weight: 700; color: var(--text-primary);">No Emergency Templates Found</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">Adjust the scope or category filter above, or create a new custom emergency directive.</div>
+        </div>
+      `;
+      return;
+    }
+
+    grid.innerHTML = filtered.map(t => {
+      let scopeLabel = '🌐 Generic National Directive';
+      let scopeBadgeClass = 'badge badge-primary';
+      if (t.scopeType === 'region') {
+        const reg = DB.regions.find(r => r.id === t.targetId);
+        scopeLabel = `📍 Regional Scoped: ${reg ? `[${reg.country}] ${reg.name}` : t.targetId}`;
+        scopeBadgeClass = 'badge badge-warning';
+      } else if (t.scopeType === 'organization') {
+        const org = DB.organizations.find(o => o.id === t.targetId);
+        scopeLabel = `🏫 School/Org Scoped: ${org ? org.name : t.targetId}`;
+        scopeBadgeClass = 'badge badge-info';
+      }
+
+      const categoryBadge = t.category === 'Critical' 
+        ? '<span class="badge badge-danger">🚨 Critical Emergency</span>' 
+        : `<span class="badge badge-secondary">${t.category}</span>`;
+
+      const customBadge = t.isCustom 
+        ? '<span class="badge badge-success" style="font-size: 0.65rem;">Custom Directive</span>' 
+        : '<span class="badge badge-primary" style="font-size: 0.65rem;">Standard Protocol</span>';
+
+      const editBtn = (t.isCustom && canCreateTemplates) 
+        ? `<button type="button" class="btn btn-secondary btn-sm btn-edit-template" data-id="${t.id}">Edit</button>` 
+        : '';
+      const deleteBtn = (t.isCustom && canCreateTemplates) 
+        ? `<button type="button" class="btn btn-danger btn-sm btn-delete-template" data-id="${t.id}">Delete</button>` 
+        : '';
+
+      return `
+        <div class="group-card" data-template-id="${t.id}" style="display: flex; flex-direction: column;">
+          <div class="group-card-header" style="align-items: flex-start;">
+            <div>
+              <div style="display: flex; gap: 0.35rem; align-items: center; margin-bottom: 0.35rem; flex-wrap: wrap;">
+                ${categoryBadge}
+                <span class="${scopeBadgeClass}" style="font-size: 0.7rem;">${scopeLabel}</span>
+                ${customBadge}
+              </div>
+              <h4 style="font-size: 0.95rem; font-weight: 700; margin: 0; color: var(--text-primary); line-height: 1.3;">${t.title}</h4>
+            </div>
+          </div>
+
+          <div style="margin: 0.75rem 0; font-size: 0.825rem; line-height: 1.45; color: var(--text-secondary); background: var(--bg-muted); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); flex-grow: 1;">
+            ${t.body}
+          </div>
+
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.25rem;">
+            <div><strong>RCS Interactive Action:</strong> <span style="color: var(--primary); font-weight: 600;">[ ${t.actionLabel} ]</span></div>
+            <div><strong>Target Deep Link:</strong> <span style="font-family: var(--font-mono); font-size: 0.7rem;">${t.actionUrl}</span></div>
+            <div><strong>Directive Source:</strong> ${t.createdBy || 'Central Emergency Protocol'}</div>
+          </div>
+
+          <div class="card-footer" style="padding-top: 0.75rem; border-top: 1px solid var(--border-color); display: flex; gap: 0.5rem; justify-content: flex-end; align-items: center; margin-top: auto;">
+            <button type="button" class="btn btn-primary btn-sm btn-load-template" data-id="${t.id}" style="margin-right: auto;">
+              🚀 Load into Dispatcher
+            </button>
+            ${editBtn}
+            ${deleteBtn}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  /**
+   * Opens modal to create or edit an emergency alert directive template.
+   * @param {Object|null} template - Existing template or null
+   */
+  function openEmergencyTemplateModal(template = null) {
+    const modal = document.getElementById('modalEmergencyTemplate');
+    if (!modal) return;
+
+    const titleEl = document.getElementById('emergencyTemplateModalTitle');
+    const idInp = document.getElementById('emergencyTemplateIdInput');
+    const titleInp = document.getElementById('templateTitleInput');
+    const catInp = document.getElementById('templateCategoryInput');
+    const scopeTypeInp = document.getElementById('templateScopeTypeInput');
+    const regGroup = document.getElementById('templateRegionSelectGroup');
+    const regSelect = document.getElementById('templateRegionSelect');
+    const orgGroup = document.getElementById('templateOrgSelectGroup');
+    const orgSelect = document.getElementById('templateOrgSelect');
+    const bodyInp = document.getElementById('templateBodyInput');
+    const actionLabelInp = document.getElementById('templateActionLabelInput');
+    const actionUrlInp = document.getElementById('templateActionUrlInput');
+
+    if (regSelect) {
+      regSelect.innerHTML = DB.regions.map(r => `
+        <option value="${r.id}">[${r.country}] ${r.name}</option>
+      `).join('');
+    }
+
+    if (orgSelect) {
+      orgSelect.innerHTML = DB.organizations.map(o => `
+        <option value="${o.id}">[${o.country}] ${o.name}</option>
+      `).join('');
+    }
+
+    const syncScopeFields = () => {
+      const sType = scopeTypeInp ? scopeTypeInp.value : 'global';
+      if (regGroup) regGroup.style.display = sType === 'region' ? 'block' : 'none';
+      if (orgGroup) orgGroup.style.display = sType === 'organization' ? 'block' : 'none';
+    };
+
+    if (scopeTypeInp) {
+      scopeTypeInp.onchange = syncScopeFields;
+    }
+
+    if (template) {
+      if (titleEl) titleEl.textContent = `Edit Template: ${template.title}`;
+      if (idInp) idInp.value = template.id;
+      if (titleInp) titleInp.value = template.title;
+      if (catInp) catInp.value = template.category;
+      if (scopeTypeInp) scopeTypeInp.value = template.scopeType;
+      if (template.scopeType === 'region' && regSelect) regSelect.value = template.targetId;
+      if (template.scopeType === 'organization' && orgSelect) orgSelect.value = template.targetId;
+      if (bodyInp) bodyInp.value = template.body;
+      if (actionLabelInp) actionLabelInp.value = template.actionLabel;
+      if (actionUrlInp) actionUrlInp.value = template.actionUrl;
+    } else {
+      if (titleEl) titleEl.textContent = 'Create Emergency Alert Template';
+      if (idInp) idInp.value = '';
+      if (titleInp) titleInp.value = '';
+      if (catInp) catInp.value = 'Critical';
+      if (scopeTypeInp) scopeTypeInp.value = 'global';
+      if (bodyInp) bodyInp.value = '';
+      if (actionLabelInp) actionLabelInp.value = 'Potvrdiť bezpečie / I am Safe';
+      if (actionUrlInp) actionUrlInp.value = 'https://aegis.edu.sk/emergency/checkin';
+    }
+
+    syncScopeFields();
+    modal.classList.add('active');
+  }
+
+  /**
+   * Handles saving (create/edit) of emergency alert template.
+   */
+  function handleSaveEmergencyTemplate(e) {
+    e.preventDefault();
+    const id = document.getElementById('emergencyTemplateIdInput')?.value;
+    const title = document.getElementById('templateTitleInput')?.value.trim();
+    const category = document.getElementById('templateCategoryInput')?.value;
+    const scopeType = document.getElementById('templateScopeTypeInput')?.value;
+    const regSelect = document.getElementById('templateRegionSelect');
+    const orgSelect = document.getElementById('templateOrgSelect');
+    const body = document.getElementById('templateBodyInput')?.value.trim();
+    const actionLabel = document.getElementById('templateActionLabelInput')?.value.trim();
+    const actionUrl = document.getElementById('templateActionUrlInput')?.value.trim();
+
+    if (!title || !body || !actionLabel) {
+      showToast('Please fill in all required template fields.', 'warning');
+      return;
+    }
+
+    let targetId = 'ALL';
+    if (scopeType === 'region') {
+      targetId = regSelect ? regSelect.value : 'ALL';
+    } else if (scopeType === 'organization') {
+      targetId = orgSelect ? orgSelect.value : 'ALL';
+    }
+
+    if (id) {
+      const existing = DB.rcsTemplates.find(t => t.id === id);
+      if (existing) {
+        existing.title = title;
+        existing.category = category;
+        existing.scopeType = scopeType;
+        existing.targetId = targetId;
+        existing.body = body;
+        existing.actionLabel = actionLabel;
+        existing.actionUrl = actionUrl;
+        addAuditLog('Template Update', `Updated emergency template ${title}`);
+        showToast(`Template "${title}" updated.`, 'success');
+      }
+    } else {
+      const newTpl = {
+        id: `tpl-${Date.now()}`,
+        title,
+        category,
+        scopeType,
+        targetId,
+        body,
+        actionLabel,
+        actionUrl,
+        isCustom: true,
+        createdBy: currentUser.name
+      };
+      DB.rcsTemplates.unshift(newTpl);
+      addAuditLog('Template Creation', `Created custom emergency template ${title}`);
+      showToast(`Emergency template "${title}" created.`, 'success');
+    }
+
+    saveDB();
+    document.getElementById('modalEmergencyTemplate')?.classList.remove('active');
+    renderEmergencyTemplateCatalog();
+    renderRcsStudio();
+  }
+
+  /**
+   * Deletes a custom emergency template.
+   * @param {string} id - Template ID
+   */
+  function deleteEmergencyTemplate(id) {
+    const tpl = DB.rcsTemplates.find(t => t.id === id);
+    if (!tpl) return;
+    if (confirm(`Permanently remove emergency template "${tpl.title}"?`)) {
+      DB.rcsTemplates = DB.rcsTemplates.filter(t => t.id !== id);
+      saveDB();
+      addAuditLog('Template Deletion', `Deleted emergency template ${tpl.title}`);
+      showToast(`Template "${tpl.title}" removed.`, 'warning');
+      renderEmergencyTemplateCatalog();
+      renderRcsStudio();
     }
   }
 
@@ -1824,6 +2317,40 @@
 
     renderRcsPillSelectors();
 
+    const isContactOnly = group ? group.accountType === 'contact_only' : false;
+    const rInteractive = document.getElementById('grpAccTypeInteractive');
+    const rContact = document.getElementById('grpAccTypeContactOnly');
+    const notice = document.getElementById('contactOnlyNotice');
+    const badgeHelper = document.getElementById('badgeAccountTypeHelper');
+
+    if (rInteractive && rContact) {
+      rInteractive.checked = !isContactOnly;
+      rContact.checked = isContactOnly;
+
+      const syncAccountTypeUI = () => {
+        const selected = document.querySelector('input[name="groupAccountType"]:checked')?.value;
+        const contactMode = selected === 'contact_only';
+        if (notice) notice.style.display = contactMode ? 'block' : 'none';
+        if (badgeHelper) {
+          badgeHelper.textContent = contactMode ? 'Contact-Only Roster (No Login)' : 'Interactive System Account';
+          badgeHelper.className = contactMode ? 'badge badge-warning' : 'badge badge-primary';
+        }
+        // Collapse interactive administrative privilege blocks when in contact-only roster mode
+        ['grp-priv-group', 'grp-priv-user', 'grp-priv-hierarchy', 'grp-priv-personal'].forEach(id => {
+          const el = document.getElementById(id);
+          const block = el ? el.closest('.privilege-block') : null;
+          if (block) block.style.display = contactMode ? 'none' : 'block';
+        });
+        const trigCheck = document.getElementById('rcsTriggerAllowedCheck');
+        const trigBlock = trigCheck ? trigCheck.closest('.privilege-block') : null;
+        if (trigBlock) trigBlock.style.display = contactMode ? 'none' : 'block';
+      };
+
+      rInteractive.onchange = syncAccountTypeUI;
+      rContact.onchange = syncAccountTypeUI;
+      syncAccountTypeUI();
+    }
+
     if (group) {
       title.textContent = `Edit Group: ${group.name}`;
       document.getElementById('groupIdInput').value = group.id;
@@ -1981,6 +2508,7 @@
     const codeName = document.getElementById('groupCodenameInput').value.trim().toUpperCase();
     const category = document.getElementById('groupCategoryInput').value;
     const desc = document.getElementById('groupDescInput').value.trim();
+    const accountType = document.querySelector('input[name="groupAccountType"]:checked')?.value || 'interactive';
 
     const scope = {
       country: document.getElementById('groupScopeCountry').value,
@@ -1989,7 +2517,14 @@
       subOrgId: document.getElementById('groupScopeSubOrg').value
     };
 
-    const privileges = getPrivilegesFromForm();
+    let privileges = getPrivilegesFromForm();
+    if (accountType === 'contact_only') {
+      privileges.group_mgmt = [];
+      privileges.user_mgmt = [];
+      privileges.hierarchy_mgmt = [];
+      privileges.personal_info = [];
+      privileges.rcs_trigger = { allowed: false, allow_all: false, types: [] };
+    }
 
     // Enforce Rule: Warn and DO NOT ALLOW if there is already a group with these exact privileges
     const duplicate = checkDuplicatePrivileges(privileges, id || null);
@@ -2014,10 +2549,11 @@
         grp.codeName = codeName;
         grp.category = category;
         grp.description = desc;
+        grp.accountType = accountType;
         grp.scope = scope;
         grp.privileges = privileges;
 
-        addAuditLog('Group Update', `Updated group ${grp.name}`);
+        addAuditLog('Group Update', `Updated group ${grp.name} (${accountType})`);
         showToast(`Group ${grp.name} updated successfully.`, 'success');
       }
     } else {
@@ -2028,11 +2564,12 @@
         category,
         description: desc,
         status: 'active',
+        accountType,
         scope,
         privileges
       };
       DB.groups.push(newGrp);
-      addAuditLog('Group Creation', `Created group ${newGrp.name}`);
+      addAuditLog('Group Creation', `Created group ${newGrp.name} (${accountType})`);
       showToast(`Group ${newGrp.name} created successfully.`, 'success');
     }
 
@@ -2802,6 +3339,29 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       rcsRecvSomeR.onchange = updateList;
     }
 
+    // Groups Toolbar Filters
+    const grpSearch = document.getElementById('groupSearchInput');
+    if (grpSearch) {
+      grpSearch.oninput = (e) => {
+        groupFilterState.search = e.target.value;
+        renderGroupsGrid();
+      };
+    }
+    const grpAccFilter = document.getElementById('filterGroupAccountType');
+    if (grpAccFilter) {
+      grpAccFilter.onchange = (e) => {
+        groupFilterState.accountType = e.target.value;
+        renderGroupsGrid();
+      };
+    }
+    const grpCatFilter = document.getElementById('filterGroupCategory');
+    if (grpCatFilter) {
+      grpCatFilter.onchange = (e) => {
+        groupFilterState.category = e.target.value;
+        renderGroupsGrid();
+      };
+    }
+
     // Groups Grid Actions
     const groupsGrid = document.getElementById('groupsCardsGrid');
     if (groupsGrid) {
@@ -3069,6 +3629,71 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       if (el) el.oninput = updateRcsPreview;
     });
 
+    // RCS Subtabs Switcher
+    const btnSubDisp = document.getElementById('btnRcsSubtabDispatcher');
+    const btnSubTpl = document.getElementById('btnRcsSubtabTemplates');
+    const viewDisp = document.getElementById('rcsDispatcherSubView');
+    const viewTpl = document.getElementById('rcsTemplatesSubView');
+
+    if (btnSubDisp && btnSubTpl && viewDisp && viewTpl) {
+      btnSubDisp.onclick = () => {
+        viewDisp.style.display = 'block';
+        viewTpl.style.display = 'none';
+        btnSubDisp.className = 'btn btn-sm btn-primary rcs-subtab-btn';
+        btnSubTpl.className = 'btn btn-sm btn-outline rcs-subtab-btn';
+      };
+
+      btnSubTpl.onclick = () => {
+        viewDisp.style.display = 'none';
+        viewTpl.style.display = 'block';
+        btnSubTpl.className = 'btn btn-sm btn-primary rcs-subtab-btn';
+        btnSubDisp.className = 'btn btn-sm btn-outline rcs-subtab-btn';
+        renderEmergencyTemplateCatalog();
+      };
+    }
+
+    // Emergency Templates Catalog Actions
+    const templatesGrid = document.getElementById('emergencyTemplatesGrid');
+    if (templatesGrid) {
+      templatesGrid.onclick = (e) => {
+        const loadBtn = e.target.closest('.btn-load-template');
+        if (loadBtn) {
+          loadEmergencyTemplateIntoDispatcher(loadBtn.dataset.id);
+          return;
+        }
+        const editBtn = e.target.closest('.btn-edit-template');
+        if (editBtn) {
+          const tpl = DB.rcsTemplates.find(t => t.id === editBtn.dataset.id);
+          if (tpl) openEmergencyTemplateModal(tpl);
+          return;
+        }
+        const delBtn = e.target.closest('.btn-delete-template');
+        if (delBtn) {
+          deleteEmergencyTemplate(delBtn.dataset.id);
+          return;
+        }
+      };
+    }
+
+    const formTpl = document.getElementById('formEmergencyTemplate');
+    if (formTpl) formTpl.onsubmit = handleSaveEmergencyTemplate;
+
+    const filterTplScope = document.getElementById('filterTemplateScope');
+    if (filterTplScope) {
+      filterTplScope.onchange = (e) => {
+        templateFilterState.scope = e.target.value;
+        renderEmergencyTemplateCatalog();
+      };
+    }
+
+    const filterTplCat = document.getElementById('filterTemplateCategory');
+    if (filterTplCat) {
+      filterTplCat.onchange = (e) => {
+        templateFilterState.category = e.target.value;
+        renderEmergencyTemplateCatalog();
+      };
+    }
+
     const btnClearAudit = document.getElementById('btnClearAuditLogs');
     if (btnClearAudit) {
       btnClearAudit.onclick = () => {
@@ -3088,12 +3713,18 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
     if (btnAddOrg) btnAddOrg.onclick = () => openHierarchyModal('org');
     if (btnAddSub) btnAddSub.onclick = () => openHierarchyModal('sub');
 
-    // Random User Simulation Button
+    // Random User Simulation Button (Interactive Users Only, excluding Contact-Only Rosters such as students)
     const btnRand = document.getElementById('btnRandomUserTestPanel');
     if (btnRand) {
       btnRand.onclick = () => {
-        const rand = DB.users[Math.floor(Math.random() * DB.users.length)];
-        switchActiveUser(rand.id);
+        const interactiveUsers = DB.users.filter(u => {
+          const g = DB.groups.find(grp => grp.id === u.groupId);
+          return g && g.accountType !== 'contact_only';
+        });
+        if (interactiveUsers.length > 0) {
+          const rand = interactiveUsers[Math.floor(Math.random() * interactiveUsers.length)];
+          switchActiveUser(rand.id);
+        }
       };
     }
   }
@@ -3128,6 +3759,7 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
 
   /**
    * Opens the Persona Switcher modal dialog for testing purposes.
+   * Only displays interactive administrative/staff personas (excludes contact-only student rosters).
    */
   function openPersonaSwitcherModal() {
     const modal = document.getElementById('modalPersonaSwitcher');
@@ -3140,7 +3772,8 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
     if (!modal || !tableBody) return;
 
     if (grpFilter) {
-      grpFilter.innerHTML = '<option value="ALL">All Groups</option>' + DB.groups.map(g => `
+      const interactiveGroups = DB.groups.filter(g => g.accountType !== 'contact_only');
+      grpFilter.innerHTML = '<option value="ALL">All Interactive Groups (Staff/Admins)</option>' + interactiveGroups.map(g => `
         <option value="${g.id}">${g.name} (${g.codeName})</option>
       `).join('');
     }
@@ -3157,6 +3790,10 @@ Tereza,Dvořáková,tereza.dvorakova@cuni.cz,+420 602 123 456,JHM
       const qVal = searchInput ? searchInput.value.toLowerCase() : '';
 
       const matched = DB.users.filter(u => {
+        const grp = DB.groups.find(g => g.id === u.groupId);
+        // Exclude all Contact-Only Roster members (e.g. students) who never authenticate
+        if (!grp || grp.accountType === 'contact_only') return false;
+
         if (cVal !== 'ALL' && u.country !== cVal) return false;
         if (gVal !== 'ALL' && u.groupId !== gVal) return false;
         if (oVal !== 'ALL' && u.orgId !== oVal) return false;

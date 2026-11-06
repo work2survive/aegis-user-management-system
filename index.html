@@ -318,7 +318,13 @@
             <input type="text" class="input-field" id="groupSearchInput" placeholder="Search groups by name, codename, or description...">
           </div>
 
-          <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+            <select class="filter-select" id="filterGroupAccountType">
+              <option value="ALL">All Access Modes</option>
+              <option value="interactive">🔑 Interactive (Can Log In)</option>
+              <option value="contact_only">📱 Contact-Only (No Login)</option>
+            </select>
+
             <select class="filter-select" id="filterGroupCategory">
               <option value="ALL">All Categories</option>
               <option value="Super Users">Super Users</option>
@@ -383,148 +389,216 @@
          TAB 4: RCS MESSAGING STUDIO
          ==================================================================== -->
     <section class="tab-content" id="tab-rcs">
-      <div class="rcs-sim-container">
-        
-        <!-- Left: Composer & Permission Matrix -->
-        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-          <div class="toolbar-card" style="margin-bottom: 0;">
-            <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.25rem;">RCS Message Dispatcher</h3>
-            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">
-              Enforces strict group-level trigger and receipt privileges across the 10 standardized RCS alert categories.
-            </p>
+      <!-- RCS Studio Sub-Navigation -->
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; flex-wrap: wrap;">
+        <button type="button" class="btn btn-sm btn-primary rcs-subtab-btn" data-rcs-subtab="dispatcher" id="btnRcsSubtabDispatcher">
+          📡 RCS Broadcast Dispatcher
+        </button>
+        <button type="button" class="btn btn-sm btn-outline rcs-subtab-btn" data-rcs-subtab="templates" id="btnRcsSubtabTemplates">
+          🚨 Emergency Alert Template Catalog (Generic &amp; Regional/Org Scoped)
+        </button>
+      </div>
 
-            <form id="rcsDispatchForm" style="display: flex; flex-direction: column; gap: 1rem;">
-              <div class="form-grid-2">
-                <div class="form-group">
-                  <label class="form-label">Dispatching Sender Group <span class="req">*</span></label>
-                  <select class="form-control" id="rcsSenderGroupSelect">
-                    <!-- Populated dynamically with groups permitted to trigger RCS -->
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">RCS Message Category (1 of 10) <span class="req">*</span></label>
-                  <select class="form-control" id="rcsMessageTypeSelect">
-                    <!-- Populated with types allowed for selected sender group -->
-                  </select>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Target Recipient Group(s) <span class="req">*</span></label>
-                <div id="rcsTargetGroupsContainer" style="display: flex; flex-wrap: wrap; gap: 0.5rem; max-height: 120px; overflow-y: auto; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-muted);">
-                  <!-- Checkboxes for groups that have privilege to receive this message type -->
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Message Title / Subject</label>
-                <input type="text" class="form-control" id="rcsMsgTitle" value="Dôležité oznámenie o organizácii výučby">
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Message Body (Rich Text RCS Content)</label>
-                <textarea class="form-control" id="rcsMsgBody" rows="4">Vážení pedagógovia a študenti, upozorňujeme na mimoriadny rozvrh a bezpečnostné protokoly platné od zajtrajšieho dňa. Potvrďte prosím prijatie tejto správy stlačením tlačidla nižšie.</textarea>
-              </div>
-
-              <div class="form-grid-2">
-                <div class="form-group">
-                  <label class="form-label">Interactive Action Button Label</label>
-                  <input type="text" class="form-control" id="rcsActionBtnLabel" value="Acknowledge Receipt / Potvrdiť">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Action Target URL / Deep Link</label>
-                  <input type="text" class="form-control" id="rcsActionBtnUrl" value="https://aegis.edu.sk/portal/confirm">
-                </div>
-              </div>
-
-              <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
-                <button type="button" class="btn btn-secondary" id="btnRcsResetForm">Reset</button>
-                <button type="submit" class="btn btn-primary" id="btnRcsSendTrigger">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="22" y1="2" x2="11" y2="13"/>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                  </svg>
-                  <span>Dispatch RCS Broadcast</span>
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <!-- RCS Dispatch Log Table -->
-          <div class="table-responsive">
-            <div style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); font-weight: 700; font-size: 0.85rem;">
-              Dispatched RCS History Log
-            </div>
-            <table class="data-table" id="rcsHistoryTable">
-              <thead>
-                <tr>
-                  <th>Timestamp</th>
-                  <th>Sender Group</th>
-                  <th>Type</th>
-                  <th>Title</th>
-                  <th>Target Recipients</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="rcsHistoryTableBody">
-                <!-- Dynamically updated -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Right: Real-time Smartphone RCS Preview Mockup -->
-        <div>
-          <div style="text-align: center; margin-bottom: 0.5rem; font-size: 0.775rem; color: var(--text-muted); font-weight: 600;">
-            LIVE RCS CARD PREVIEW (DEVICE DISPLAY)
-          </div>
-          <div class="rcs-phone-mock">
-            <div class="phone-top-bar">
-              <span>09:41</span>
-              <span>RCS Verified • LTE+</span>
-              <span>100% 🔋</span>
-            </div>
-
-            <div style="display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0;">
-              <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700;">
-                EDU
-              </div>
-              <div style="display: flex; flex-direction: column;">
-                <span style="font-weight: 700; font-size: 0.825rem; display: flex; align-items: center; gap: 0.25rem;">
-                  <span id="rcsMockSenderName">Aegis National Education</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="white" stroke-width="2">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                  </svg>
-                </span>
-                <span style="font-size: 0.675rem; color: #9ca3af;">RCS Business Messaging Verified</span>
-              </div>
-            </div>
-
-            <!-- Rich Card Mockup -->
-            <div class="rcs-bubble-card">
-              <div class="rcs-bubble-header">
-                <span id="rcsMockTypeBadge">🚨 System Notification</span>
-              </div>
-              <div style="font-weight: 700; font-size: 0.9rem; color: #f3f4f6;" id="rcsMockTitle">
-                Dôležité oznámenie o organizácii výučby
-              </div>
-              <p style="color: #d1d5db; font-size: 0.8rem;" id="rcsMockBody">
-                Vážení pedagógovia a študenti, upozorňujeme na mimoriadny rozvrh a bezpečnostné protokoly platné od zajtrajšieho dňa. Potvrďte prosím prijatie tejto správy stlačením tlačidla nižšie.
+      <!-- SUBVIEW 1: DISPATCHER -->
+      <div id="rcsDispatcherSubView" class="rcs-subview">
+        <div class="rcs-sim-container">
+          
+          <!-- Left: Composer & Permission Matrix -->
+          <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+            <div class="toolbar-card" style="margin-bottom: 0;">
+              <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.25rem;">RCS Message Dispatcher</h3>
+              <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                Enforces strict group-level trigger and receipt privileges across the 10 standardized RCS alert categories.
               </p>
 
-              <div style="margin-top: 0.5rem;">
-                <button type="button" style="width: 100%; padding: 0.45rem; border-radius: 8px; background: var(--primary); border: none; color: white; font-weight: 600; font-size: 0.775rem; cursor: pointer;" id="rcsMockActionButton">
-                  Acknowledge Receipt / Potvrdiť
-                </button>
-              </div>
+              <form id="rcsDispatchForm" style="display: flex; flex-direction: column; gap: 1rem;">
+                <!-- Quick Emergency Template Loader -->
+                <div class="form-group" style="background: var(--primary-light); padding: 0.65rem 0.85rem; border-radius: var(--radius-md); border: 1px solid hsla(var(--primary-hue), var(--primary-sat), var(--primary-lit), 0.3);">
+                  <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; color: var(--primary); font-weight: 700; margin-bottom: 0.35rem;">
+                    <span>⚡ Quick Load Emergency Alert Template</span>
+                    <span style="font-size: 0.7rem; font-weight: normal; color: var(--text-secondary);">Evacuation, Threat Lockdown, Weather, Hazmat</span>
+                  </label>
+                  <select class="form-control" id="rcsEmergencyTemplateSelect">
+                    <option value="">— Select an Emergency Alert Template to Load —</option>
+                    <!-- Dynamically populated with generic + scoped templates -->
+                  </select>
+                </div>
+
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label class="form-label">Dispatching Sender Group <span class="req">*</span></label>
+                    <select class="form-control" id="rcsSenderGroupSelect">
+                      <!-- Populated dynamically with groups permitted to trigger RCS -->
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">RCS Message Category (1 of 10) <span class="req">*</span></label>
+                    <select class="form-control" id="rcsMessageTypeSelect">
+                      <!-- Populated with types allowed for selected sender group -->
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" style="display: flex; justify-content: space-between;">
+                    <span>Target Recipient Group(s) <span class="req">*</span></span>
+                    <span style="font-size: 0.7rem; color: var(--text-muted);">Includes Contact-Only Rosters (Students, Emergency Contacts)</span>
+                  </label>
+                  <div id="rcsTargetGroupsContainer" style="display: flex; flex-wrap: wrap; gap: 0.5rem; max-height: 140px; overflow-y: auto; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-muted);">
+                    <!-- Checkboxes for groups that have privilege to receive this message type -->
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Message Title / Subject</label>
+                  <input type="text" class="form-control" id="rcsMsgTitle" value="Dôležité oznámenie o organizácii výučby">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Message Body (Rich Text RCS Content)</label>
+                  <textarea class="form-control" id="rcsMsgBody" rows="4">Vážení pedagógovia a študenti, upozorňujeme na mimoriadny rozvrh a bezpečnostné protokoly platné od zajtrajšieho dňa. Potvrďte prosím prijatie tejto správy stlačením tlačidla nižšie.</textarea>
+                </div>
+
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label class="form-label">Interactive Action Button Label</label>
+                    <input type="text" class="form-control" id="rcsActionBtnLabel" value="Acknowledge Receipt / Potvrdiť">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Action Target URL / Deep Link</label>
+                    <input type="text" class="form-control" id="rcsActionBtnUrl" value="https://aegis.edu.sk/portal/confirm">
+                  </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
+                  <button type="button" class="btn btn-secondary" id="btnRcsResetForm">Reset</button>
+                  <button type="submit" class="btn btn-primary" id="btnRcsSendTrigger">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="22" y1="2" x2="11" y2="13"/>
+                      <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    </svg>
+                    <span>Dispatch RCS Broadcast</span>
+                  </button>
+                </div>
+              </form>
             </div>
 
-            <div style="text-align: right; font-size: 0.65rem; color: #6b7280;">
-              Delivered via Google RCS Gateway • Read
+            <!-- RCS Dispatch Log Table -->
+            <div class="table-responsive">
+              <div style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); font-weight: 700; font-size: 0.85rem;">
+                Dispatched RCS History Log
+              </div>
+              <table class="data-table" id="rcsHistoryTable">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Sender Group</th>
+                    <th>Type</th>
+                    <th>Title</th>
+                    <th>Target Recipients</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="rcsHistoryTableBody">
+                  <!-- Dynamically updated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Right: Real-time Smartphone RCS Preview Mockup -->
+          <div>
+            <div style="text-align: center; margin-bottom: 0.5rem; font-size: 0.775rem; color: var(--text-muted); font-weight: 600;">
+              LIVE RCS CARD PREVIEW (DEVICE DISPLAY)
+            </div>
+            <div class="rcs-phone-mock">
+              <div class="phone-top-bar">
+                <span>09:41</span>
+                <span>RCS Verified • LTE+</span>
+                <span>100% 🔋</span>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0;">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700;">
+                  EDU
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-weight: 700; font-size: 0.825rem; display: flex; align-items: center; gap: 0.25rem;">
+                    <span id="rcsMockSenderName">Aegis National Education</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6" stroke="white" stroke-width="2">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                  </span>
+                  <span style="font-size: 0.675rem; color: #9ca3af;">RCS Business Messaging Verified</span>
+                </div>
+              </div>
+
+              <!-- Rich Card Mockup -->
+              <div class="rcs-bubble-card">
+                <div class="rcs-bubble-header">
+                  <span id="rcsMockTypeBadge">🚨 System Notification</span>
+                </div>
+                <div style="font-weight: 700; font-size: 0.9rem; color: #f3f4f6;" id="rcsMockTitle">
+                  Dôležité oznámenie o organizácii výučby
+                </div>
+                <p style="color: #d1d5db; font-size: 0.8rem;" id="rcsMockBody">
+                  Vážení pedagógovia a študenti, upozorňujeme na mimoriadny rozvrh a bezpečnostné protokoly platné od zajtrajšieho dňa. Potvrďte prosím prijatie tejto správy stlačením tlačidla nižšie.
+                </p>
+
+                <div style="margin-top: 0.5rem;">
+                  <button type="button" style="width: 100%; padding: 0.45rem; border-radius: 8px; background: var(--primary); border: none; color: white; font-weight: 600; font-size: 0.775rem; cursor: pointer;" id="rcsMockActionButton">
+                    Acknowledge Receipt / Potvrdiť
+                  </button>
+                </div>
+              </div>
+
+              <div style="text-align: right; font-size: 0.65rem; color: #6b7280;">
+                Delivered via Google RCS Gateway • Read
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- SUBVIEW 2: EMERGENCY TEMPLATE CATALOG -->
+      <div id="rcsTemplatesSubView" class="rcs-subview" style="display: none;">
+        <div class="toolbar-card">
+          <div class="toolbar-top-row" style="flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.25rem;">Emergency Alert Template Catalog</h3>
+              <p style="font-size: 0.8rem; color: var(--text-secondary);">
+                Standardized emergency directives for immediate evacuations, armed threat lockdowns (shelter in place), natural hazards, and custom school/regional protocols.
+              </p>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center; margin-left: auto; flex-wrap: wrap;">
+              <select class="filter-select" id="filterTemplateScope">
+                <option value="ALL">All Scopes</option>
+                <option value="global">🌐 Generic / National</option>
+                <option value="region">📍 Regional Scoped</option>
+                <option value="organization">🏫 School / Organization Scoped</option>
+              </select>
+              <select class="filter-select" id="filterTemplateCategory">
+                <option value="ALL">All Categories</option>
+                <option value="Critical">🚨 Critical &amp; Lockdowns</option>
+                <option value="Operations">🚌 Operations &amp; Transit</option>
+                <option value="Security">🔒 Security &amp; Safety</option>
+              </select>
+              <button type="button" class="btn btn-primary btn-sm" id="btnOpenCreateTemplate">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                <span>Create Custom Template</span>
+              </button>
             </div>
           </div>
         </div>
 
+        <!-- Template Cards Grid -->
+        <div class="cards-grid" id="emergencyTemplatesGrid">
+          <!-- Dynamically populated -->
+        </div>
       </div>
     </section>
 
@@ -761,6 +835,33 @@
             <div class="form-group">
               <label class="form-label">Group Description</label>
               <input type="text" class="form-control" id="groupDescInput" placeholder="Scope, responsibilities, and operational duties...">
+            </div>
+          </div>
+
+          <!-- Group Account Access & Login Eligibility -->
+          <div class="form-group" style="background: var(--bg-muted); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 1rem;">
+            <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Group Account Access &amp; Login Eligibility <span class="req">*</span></span>
+              <span class="badge badge-primary" id="badgeAccountTypeHelper">Interactive System Account</span>
+            </label>
+            <div style="display: flex; gap: 0.75rem; margin-top: 0.35rem; flex-wrap: wrap;">
+              <label class="radio-label" style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; flex: 1; min-width: 240px; background: var(--bg-surface); padding: 0.65rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <input type="radio" name="groupAccountType" value="interactive" id="grpAccTypeInteractive" checked>
+                <div>
+                  <strong style="font-size: 0.825rem; display: block;">Interactive System Users</strong>
+                  <span style="font-size: 0.725rem; color: var(--text-muted);">Users can authenticate, log in, and perform role-permitted actions (Admins, Teachers, Staff). Eligible for testing simulation.</span>
+                </div>
+              </label>
+              <label class="radio-label" style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; flex: 1; min-width: 240px; background: var(--bg-surface); padding: 0.65rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <input type="radio" name="groupAccountType" value="contact_only" id="grpAccTypeContactOnly">
+                <div>
+                  <strong style="font-size: 0.825rem; display: block; color: var(--warning);">Contact-Only Roster (No Login)</strong>
+                  <span style="font-size: 0.725rem; color: var(--text-muted);">Never log in. Verified contact database for receiving emergency RCS broadcasts (Students, Emergency Contacts, Alumni). Excluded from login simulation.</span>
+                </div>
+              </label>
+            </div>
+            <div id="contactOnlyNotice" style="display: none; margin-top: 0.5rem; font-size: 0.75rem; color: var(--warning); background: var(--warning-light); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid hsla(38, 92%, 50%, 0.3);">
+              ⚠️ <strong>Contact-Only Roster Mode Active:</strong> Members of this group cannot log in and are excluded from the testing persona simulation panel. Interactive administrative permissions (user mgmt, hierarchy mgmt, password changes) are automatically disabled. Focus is placed on RCS broadcast receipt categories.
             </div>
           </div>
 
@@ -1223,6 +1324,10 @@
           Select any user from the 300 Czech &amp; Slovak dataset to test their specific privilege sets, hierarchy restrictions, and RCS capabilities. <strong>All user profiles and names are completely fictional.</strong>
         </p>
 
+        <div style="background: var(--bg-muted); border-left: 3px solid var(--warning); padding: 0.5rem 0.75rem; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+          ℹ️ <strong>Interactive Accounts Only:</strong> Contact-only rosters (such as students, alumni, and emergency contacts) do not possess login credentials and cannot authenticate. They are excluded from login simulation.
+        </div>
+
         <div class="form-grid-3">
           <div class="form-group">
             <label class="form-label">Filter by Country</label>
@@ -1432,6 +1537,84 @@
     <span>🧪 Testing Simulator (Fictional Data)</span>
     <span class="badge badge-warning" id="dockUserShort">Jan Novák</span>
   </button>
+
+  <!-- ======================================================================
+       MODAL 7: EMERGENCY ALERT TEMPLATE (ADD / EDIT)
+       ====================================================================== -->
+  <div class="modal-backdrop" id="modalEmergencyTemplate">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="emergencyTemplateModalTitle">Create Emergency Alert Template</h3>
+        <button class="btn btn-ghost btn-sm btn-icon-only modal-close-btn" data-close="modalEmergencyTemplate">&times;</button>
+      </div>
+      <form id="formEmergencyTemplate">
+        <div class="modal-body">
+          <input type="hidden" id="emergencyTemplateIdInput">
+
+          <div class="form-group">
+            <label class="form-label">Template Title / Directive Subject <span class="req">*</span></label>
+            <input type="text" class="form-control" id="templateTitleInput" required placeholder="e.g. 🚨 Okamžitá evakuácia areálu / Immediate Evacuation">
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Category <span class="req">*</span></label>
+              <select class="form-control" id="templateCategoryInput" required>
+                <option value="Critical">🚨 Critical Emergency / Threat</option>
+                <option value="Operations">🚌 Operations &amp; Disruption</option>
+                <option value="Security">🔒 Security Incident</option>
+                <option value="Academic">📢 Academic Directive</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Applicable Scope Level <span class="req">*</span></label>
+              <select class="form-control" id="templateScopeTypeInput" required>
+                <option value="global">🌐 Generic (National / All Institutions)</option>
+                <option value="region">📍 Region-Specific Directive</option>
+                <option value="organization">🏫 School / Organization-Specific Directive</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Conditional Region Selector -->
+          <div class="form-group" id="templateRegionSelectGroup" style="display: none;">
+            <label class="form-label">Target Region <span class="req">*</span></label>
+            <select class="form-control" id="templateRegionSelect">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <!-- Conditional Organization Selector -->
+          <div class="form-group" id="templateOrgSelectGroup" style="display: none;">
+            <label class="form-label">Target School / Organization <span class="req">*</span></label>
+            <select class="form-control" id="templateOrgSelect">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">RCS Rich Message Body <span class="req">*</span></label>
+            <textarea class="form-control" id="templateBodyInput" rows="4" required placeholder="Full instructions for students, staff, and emergency coordinators..."></textarea>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Action Button Label <span class="req">*</span></label>
+              <input type="text" class="form-control" id="templateActionLabelInput" required placeholder="e.g. Potvrdiť bezpečie / I am Safe">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Action Deep Link URL</label>
+              <input type="text" class="form-control" id="templateActionUrlInput" value="https://aegis.edu.sk/emergency/checkin">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-close-btn" data-close="modalEmergencyTemplate">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveEmergencyTemplate">Save Template</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>

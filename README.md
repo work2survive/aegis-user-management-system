@@ -94,30 +94,42 @@ The platform simulates multi-tenant administrative boundaries, role-based access
 
 ## 🛡️ Group Roles & Codename Registry
 
-The system boots pre-seeded with **20 specialized groups** representing diverse institutional personas:
+The system boots pre-seeded with **22 specialized groups** representing diverse institutional personas:
 
-| # | Group Name | Codename | Category | Territorial Scope | Key Responsibilities |
-|---|------------|----------|----------|-------------------|----------------------|
-| 1 | **Super Administrators (God Mode)** | `NEXUS-OMNI` | Super Users | 🌐 Global | Full unrestricted access to all entities, groups, and RCS channels. |
-| 2 | **National Education Supervisors (Level 3)** | `AURA-GOV` | Supervisors | 🌐 Global | Cross-border ministry inspectors for Czechia and Slovakia. |
-| 3 | **Czech Regional Education Supervisors (Level 2)** | `BOHEMIA-INSP` | Supervisors | 🇨🇿 Czech Republic | School district inspectors within Czech territories. |
-| 4 | **Slovak Regional Education Supervisors (Level 2)** | `TATRA-INSP` | Supervisors | 🇸🇰 Slovakia | School district inspectors strictly within Slovak territories. |
-| 5 | **District Academic Supervisors (Level 1)** | `VANGUARD-L1` | Supervisors | 🇨🇿 Prague Region | Metropolitan Prague evaluators. |
-| 6 | **School Principals & Directors** | `RECTOR-EXEC` | Schools | 🌐 Global / Assigned Org | Full school administration, user provisioning, and emergency alerts. |
-| 7 | **Senior Academic Faculty & Head Teachers** | `FACULTY-SR` | Teachers | 🌐 Global / Assigned Org | Senior professors managing curricula, bulk grading, and class notices. |
-| 8 | **Certified Teachers & Instructors** | `PEDAGOG-STD` | Teachers | 🌐 Global / Assigned Org | Classroom educators with access to attendance reminders and grade alerts. |
-| 9 | **Charles University Faculty Lecturers** | `CUNI-DOCENT` | Teachers | 🇨🇿 CUNI (Prague) | Restricted strictly to Charles University departments. |
-| 10 | **STU Bratislava Technical Lecturers** | `STU-DOCENT` | Teachers | 🇸🇰 STU (Bratislava) | Restricted strictly to Slovak Technical University faculties. |
-| 11 | **Alumni Chapter Presidents & Officers** | `ALUMNI-CHAIR` | Alumni | 🌐 Global | Graduate networking, fundraising, and alumni gala messaging. |
-| 12 | **Registered Alumni Network** | `ALUMNI-VERIFIED` | Alumni | 🌐 Global | Standard alumni maintaining profiles and receiving newsletters. |
-| 13 | **QA Simulation Test Leads** | `TESTER-ALPHA` | Testers | 🌐 Global | Test coordinators simulating multi-role institutional transitions. |
-| 14 | **Automated Sandbox Testers** | `TESTER-SANDBOX` | Testers | 🇨🇿 ČVUT FIT | Automated regression bots restricted to ČVUT computer science. |
-| 15 | **Regional IT Operations Administrators** | `SYSADMIN-CORP` | Super Users | 🌐 Global | Account provisioning, CSV imports, and password resets. |
-| 16 | **Admissions & Registrar Officers** | `REGISTRAR-OFFICE` | Schools | 🌐 Global | Prospective student batch imports and enrollment records. |
-| 17 | **Student Council Representatives** | `STUDENT-SENATE` | Schools | 🌐 Global | Student leadership broadcasting campus event invitations. |
-| 18 | **Bursars & Tuition Finance Staff** | `FIN-BURSAR` | Schools | 🌐 Global | Tuition invoices, dorm billing notices, and scholarship announcements. |
-| 19 | **Košice Gymnasium Staff & Tutors** | `KOSICE-GYM-FACULTY` | Schools | 🇸🇰 Gymnázium Poštová | Secondary school educators restricted strictly to Košice. |
-| 20 | **Campus Safety & Emergency Dispatchers** | `DISPATCH-CENTRAL` | Super Users | 🌐 Global | High-priority emergency RCS broadcast operators. |
+| # | Group Name | Codename | Category | Territorial Scope | Access Mode | Key Responsibilities |
+|---|------------|----------|----------|-------------------|-------------|----------------------|
+| 1 | **Super Administrators (God Mode)** | `NEXUS-OMNI` | Super Users | 🌐 Global | 🔑 Interactive | Full unrestricted access to all entities, groups, and RCS channels. |
+| 2 | **National Education Supervisors (Level 3)** | `AURA-GOV` | Supervisors | 🌐 Global | 🔑 Interactive | Cross-border ministry inspectors for Czechia and Slovakia. |
+| 3 | **Czech Regional Education Supervisors (Level 2)** | `BOHEMIA-INSP` | Supervisors | 🇨🇿 Czech Republic | 🔑 Interactive | School district inspectors within Czech territories. |
+| 4 | **Slovak Regional Education Supervisors (Level 2)** | `TATRA-INSP` | Supervisors | 🇸🇰 Slovakia | 🔑 Interactive | School district inspectors strictly within Slovak territories. |
+| 5 | **District Academic Supervisors (Level 1)** | `VANGUARD-L1` | Supervisors | 🇨🇿 Prague Region | 🔑 Interactive | Metropolitan Prague evaluators. |
+| 6 | **School Principals & Directors** | `RECTOR-EXEC` | Schools | 🌐 Global / Assigned Org | 🔑 Interactive | Full school administration, user provisioning, and emergency alerts. |
+| 7 | **Senior Academic Faculty & Head Teachers** | `FACULTY-SR` | Teachers | 🌐 Global / Assigned Org | 🔑 Interactive | Senior professors managing curricula, bulk grading, and class notices. |
+| 8 | **Certified Teachers & Instructors** | `PEDAGOG-STD` | Teachers | 🌐 Global / Assigned Org | 🔑 Interactive | Classroom educators with access to attendance reminders and grade alerts. |
+| 9 | **Charles University Faculty Lecturers** | `CUNI-DOCENT` | Teachers | 🇨🇿 CUNI (Prague) | 🔑 Interactive | Restricted strictly to Charles University departments. |
+| 10 | **STU Bratislava Technical Lecturers** | `STU-DOCENT` | Teachers | 🇸🇰 STU (Bratislava) | 🔑 Interactive | Restricted strictly to Slovak Technical University faculties. |
+| 11 | **Alumni Chapter Presidents & Officers** | `ALUMNI-CHAIR` | Alumni | 🌐 Global | 🔑 Interactive | Graduate networking, fundraising, and alumni gala messaging. |
+| 12 | **Registered Alumni Network** | `ALUMNI-VERIFIED` | Alumni | 🌐 Global | 📱 Contact-Only | Verified alumni directory enrolled strictly for institutional announcements. |
+| 13 | **QA Simulation Test Leads** | `TESTER-ALPHA` | Testers | 🌐 Global | 🔑 Interactive | Test coordinators simulating multi-role institutional transitions. |
+| 14 | **Automated Sandbox Testers** | `TESTER-SANDBOX` | Testers | 🇨🇿 ČVUT FIT | 🔑 Interactive | Automated regression bots restricted to ČVUT computer science. |
+| 15 | **Regional IT Operations Administrators** | `SYSADMIN-CORP` | Super Users | 🌐 Global | 🔑 Interactive | Account provisioning, CSV imports, and password resets. |
+| 16 | **Admissions & Registrar Officers** | `REGISTRAR-OFFICE` | Schools | 🌐 Global | 🔑 Interactive | Prospective student batch imports and enrollment records. |
+| 17 | **Student Council Representatives** | `STUDENT-SENATE` | Schools | 🌐 Global | 🔑 Interactive | Elected student leaders broadcasting campus event invitations. |
+| 18 | **Bursars & Tuition Finance Staff** | `FIN-BURSAR` | Schools | 🌐 Global | 🔑 Interactive | Tuition invoices, dorm billing notices, and scholarship announcements. |
+| 19 | **Košice Gymnasium Staff & Tutors** | `KOSICE-GYM-FACULTY` | Schools | 🇸🇰 Gymnázium Poštová | 🔑 Interactive | Secondary school educators restricted strictly to Košice. |
+| 20 | **Campus Safety & Emergency Dispatchers** | `DISPATCH-CENTRAL` | Super Users | 🌐 Global | 🔑 Interactive | High-priority emergency RCS broadcast operators. |
+| 21 | **Gymnasium Secondary Students Contact Roster** | `STUDENT-GYM` | Schools | 🇸🇰 Gymnázium Poštová | 📱 Contact-Only | Secondary student contacts enrolled exclusively to receive emergency RCS broadcasts. |
+| 22 | **University Enrolled Undergraduates Roster** | `STUDENT-UNIV` | Schools | 🇨🇿 Charles University | 📱 Contact-Only | Undergraduate student contacts enrolled exclusively to receive emergency alerts and notices. |
+
+---
+
+### 📱 Account Access Modes: Interactive Staff vs. Contact-Only Rosters
+- **🔑 Interactive System Accounts**: Staff, faculty, and administrators who log into the portal. They are assigned granular privileges across User Management, Group Management, Hierarchy, and Privacy.
+- **📱 Contact-Only Rosters (Students / Emergency Contacts)**: Databases of verified contacts (e.g., student bodies) who **never log in**. 
+  - They are stored purely with their verified mobile number and institutional affiliation to receive real-time **RCS Emergency Broadcasts**.
+  - All administrative privilege checkboxes are collapsed and set to zero during group configuration.
+  - Credential/password modification actions are automatically suppressed in the user table.
+  - **Persona Simulation Exclusion**: Contact-only roster members are strictly filtered out of the floating test panel and persona switcher dialog, ensuring only authentic interactive staff accounts can be simulated.
 
 ---
 
@@ -179,6 +191,20 @@ Under **Rules 7.0 & 8.0**, groups can be authorized to trigger or receive RCS me
 | `rcs-billing-fee` | **Billing & Fee Notice** | Finance | Tuition invoices, dormitory rent reminders, scholarship disbursements. |
 | `rcs-event-invitation` | **Event Invitation** | Events | Open doors day (*Den otevřených dveří*), graduation ceremonies (*Promoce*). |
 | `rcs-general-broadcast` | **General Broadcast** | General | Campus community newsletters, student union elections, athletic meets. |
+
+### 🚨 Emergency Directive Template Catalog (Generic & Scoped)
+The RCS Studio includes an **Emergency Directive Template Catalog** enabling safety officers and administrators to dispatch high-priority alerts with single-click pre-population:
+- **🌐 Generic National Protocols**:
+  - `🚨 Okamžitá evakuácia budovy / Immediate Evacuation Directive` (Fire, building hazards)
+  - `🔒 Bezpečnostný Lockdown (Úkryt & Barikáda) / Active Threat` (Active assailant, barricade, shelter-in-place)
+  - `⚠️ Výstraha pred extrémnym počasím / Severe Weather Hazard` (Class cancellation, indoor shelter)
+  - `🧪 Chemický poplach (Únik nebezpečnej látky) / Hazmat Incident` (Toxic spill containment)
+- **📍 Regional Scoped Directives**:
+  - `🚌 Kolaps dopravy a mimoriadny dištančný režim — Praha` (Transit emergency shift to distance learning)
+- **🏫 School / Campus Scoped Plans**:
+  - `🏛️ Evakuačný plán a zhromaždisko — Gymnázium Poštová Košice` (Gymnasium assembly zone & muster count)
+  - `🏛️ Bezpečnostný perimeter areálu Karlovej Univerzity` (Charles University campus lockdown and gate security)
+- **📱 Live Interactive RCS Actions**: Templates feature verified deep-link buttons (`Potvrdiť evakuáciu`, `Potvrdiť úkryt`, `Hlásenie triedneho učiteľa`) rendered on a real-time smartphone device mockup.
 
 ---
 

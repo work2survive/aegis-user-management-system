@@ -1,5 +1,5 @@
 // Simulated Database for User Management System
-// Contains 300 Slovak & Czech users, 20 Groups, Hierarchical Regions, Organizations & Sub-Organizations
+// Contains 300 Slovak & Czech users, 22 Groups, Hierarchical Regions, Organizations & Sub-Organizations
 
 const INITIAL_REGIONS = [
   {
@@ -533,7 +533,8 @@ const INITIAL_GROUPS = [
           "rcs-general-broadcast"
         ]
       }
-    }
+    },
+    "accountType": "interactive"
   },
   {
     "id": "grp-supervisor-l3",
@@ -597,7 +598,8 @@ const INITIAL_GROUPS = [
           "rcs-general-broadcast"
         ]
       }
-    }
+    },
+    "accountType": "interactive"
   },
   {
     "id": "grp-supervisor-cz-reg",
@@ -650,7 +652,8 @@ const INITIAL_GROUPS = [
           "rcs-sys-notice"
         ]
       }
-    }
+    },
+    "accountType": "interactive"
   },
   {
     "id": "grp-supervisor-sk-reg",
@@ -703,7 +706,8 @@ const INITIAL_GROUPS = [
           "rcs-sys-notice"
         ]
       }
-    }
+    },
+    "accountType": "interactive"
   },
   {
     "id": "grp-supervisor-l1-district",
@@ -749,7 +753,8 @@ const INITIAL_GROUPS = [
           "rcs-admin-memo"
         ]
       }
-    }
+    },
+    "accountType": "interactive"
   },
   {
     "id": "grp-school-principals",
@@ -818,7 +823,8 @@ const INITIAL_GROUPS = [
           "rcs-general-broadcast"
         ]
       }
-    }
+    },
+    "accountType": "interactive"
   },
   {
     "id": "grp-teachers-senior",
@@ -867,7 +873,8 @@ const INITIAL_GROUPS = [
           "rcs-calendar-notice"
         ]
       }
-    }
+    },
+    "accountType": "interactive"
   },
   {
     "id": "grp-teachers-standard",
@@ -911,7 +918,8 @@ const INITIAL_GROUPS = [
           "rcs-admin-memo"
         ]
       }
-    }
+    },
+    "accountType": "interactive"
   },
   {
     "id": "grp-teachers-prg-cuni",
@@ -957,7 +965,8 @@ const INITIAL_GROUPS = [
           "rcs-calendar-notice"
         ]
       }
-    }
+    },
+    "accountType": "interactive"
   },
   {
     "id": "grp-teachers-sk-stu",
@@ -1002,7 +1011,8 @@ const INITIAL_GROUPS = [
           "rcs-calendar-notice"
         ]
       }
-    }
+    },
+    "accountType": "interactive"
   },
   {
     "id": "grp-alumni-presidents",
@@ -1045,7 +1055,8 @@ const INITIAL_GROUPS = [
           "rcs-general-broadcast"
         ]
       }
-    }
+    },
+    "accountType": "interactive"
   },
   {
     "id": "grp-alumni-members",
@@ -1083,7 +1094,8 @@ const INITIAL_GROUPS = [
           "rcs-general-broadcast"
         ]
       }
-    }
+    },
+    "accountType": "contact_only"
   },
   {
     "id": "grp-testers-qa-lead",
@@ -1152,7 +1164,8 @@ const INITIAL_GROUPS = [
           "rcs-general-broadcast"
         ]
       }
-    }
+    },
+    "accountType": "interactive"
   },
   {
     "id": "grp-testers-automation",
@@ -1198,7 +1211,8 @@ const INITIAL_GROUPS = [
           "rcs-security-otp"
         ]
       }
-    }
+    },
+    "accountType": "interactive"
   },
   {
     "id": "grp-it-admins-regional",
@@ -1263,7 +1277,8 @@ const INITIAL_GROUPS = [
           "rcs-general-broadcast"
         ]
       }
-    }
+    },
+    "accountType": "interactive"
   },
   {
     "id": "grp-admissions-officers",
@@ -1311,7 +1326,8 @@ const INITIAL_GROUPS = [
           "rcs-billing-fee"
         ]
       }
-    }
+    },
+    "accountType": "interactive"
   },
   {
     "id": "grp-student-council",
@@ -1354,7 +1370,8 @@ const INITIAL_GROUPS = [
           "rcs-calendar-notice"
         ]
       }
-    }
+    },
+    "accountType": "interactive"
   },
   {
     "id": "grp-financial-accountants",
@@ -1399,7 +1416,8 @@ const INITIAL_GROUPS = [
           "rcs-sys-notice"
         ]
       }
-    }
+    },
+    "accountType": "interactive"
   },
   {
     "id": "grp-gymnasium-staff-ke",
@@ -1445,7 +1463,8 @@ const INITIAL_GROUPS = [
           "rcs-general-broadcast"
         ]
       }
-    }
+    },
+    "accountType": "interactive"
   },
   {
     "id": "grp-security-dispatchers",
@@ -1491,6 +1510,86 @@ const INITIAL_GROUPS = [
           "rcs-grade-report",
           "rcs-calendar-notice",
           "rcs-admin-memo",
+          "rcs-billing-fee",
+          "rcs-event-invitation",
+          "rcs-general-broadcast"
+        ]
+      }
+    },
+    "accountType": "interactive"
+  },
+  {
+    "id": "grp-students-gymnasium",
+    "name": "Gymnasium Secondary Students Contact Roster",
+    "codeName": "STUDENT-GYM",
+    "description": "Secondary school pupil contact directory. Non-login accounts maintained exclusively for emergency alerts (evacuations, threat lockdowns) and institutional announcements.",
+    "category": "Schools",
+    "status": "active",
+    "accountType": "contact_only",
+    "scope": {
+      "country": "SK",
+      "regionId": "reg-sk-ke",
+      "orgId": "org-gpost",
+      "subOrgId": "ALL"
+    },
+    "privileges": {
+      "group_mgmt": [],
+      "user_mgmt": [],
+      "personal_info": [],
+      "hierarchy_mgmt": [],
+      "rcs_trigger": {
+        "allowed": false,
+        "allow_all": false,
+        "types": []
+      },
+      "rcs_receive": {
+        "allowed": true,
+        "allow_all": true,
+        "types": [
+          "rcs-emergency",
+          "rcs-sys-notice",
+          "rcs-attendance",
+          "rcs-grade-report",
+          "rcs-calendar-notice",
+          "rcs-event-invitation",
+          "rcs-general-broadcast"
+        ]
+      }
+    }
+  },
+  {
+    "id": "grp-students-university",
+    "name": "University Enrolled Undergraduates Roster",
+    "codeName": "STUDENT-UNIV",
+    "description": "Enrolled undergraduate & graduate students contact directory. Non-login accounts for receiving campus evacuation directives, lockdown notices, and schedule updates.",
+    "category": "Schools",
+    "status": "active",
+    "accountType": "contact_only",
+    "scope": {
+      "country": "CZ",
+      "regionId": "reg-cz-prg",
+      "orgId": "org-cuni",
+      "subOrgId": "ALL"
+    },
+    "privileges": {
+      "group_mgmt": [],
+      "user_mgmt": [],
+      "personal_info": [],
+      "hierarchy_mgmt": [],
+      "rcs_trigger": {
+        "allowed": false,
+        "allow_all": false,
+        "types": []
+      },
+      "rcs_receive": {
+        "allowed": true,
+        "allow_all": true,
+        "types": [
+          "rcs-emergency",
+          "rcs-sys-notice",
+          "rcs-attendance",
+          "rcs-grade-report",
+          "rcs-calendar-notice",
           "rcs-billing-fee",
           "rcs-event-invitation",
           "rcs-general-broadcast"
@@ -1654,16 +1753,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-007",
     "username": "vaclav.cerny",
-    "name": "doc. RNDr. Václav Černý",
+    "name": "RNDr. Václav Černý",
     "firstName": "Václav",
     "lastName": "Černý",
     "email": "vaclav.cerny@skola.cz",
     "phone": "+420 737 93 866",
-    "country": "CZ",
-    "regionId": "reg-cz-jhc",
-    "orgId": "org-gjk",
+    "country": "SK",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-gjk-hum",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1976-10-19",
@@ -1854,16 +1953,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-015",
     "username": "katerina.markova",
-    "name": "MUDr. Kateřina Marková",
+    "name": "Kateřina Marková",
     "firstName": "Kateřina",
     "lastName": "Marková",
     "email": "katerina.markova@muni.cz",
     "phone": "+420 777 95 187",
-    "country": "CZ",
-    "regionId": "reg-cz-msk",
-    "orgId": "org-vsb",
+    "country": "SK",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-vsb-fei",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1980-12-14",
@@ -2204,16 +2303,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-029",
     "username": "anna.cerna",
-    "name": "doc. RNDr. Anna Černá, MBA",
+    "name": "RNDr. Anna Černá, MBA",
     "firstName": "Anna",
     "lastName": "Černá",
     "email": "anna.cerna@skola.cz",
     "phone": "+420 603 09 504",
-    "country": "CZ",
-    "regionId": "reg-cz-plk",
-    "orgId": "org-gjk",
+    "country": "SK",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-gjk-sec",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1981-09-04",
@@ -2485,10 +2584,10 @@ const INITIAL_USERS = [
     "email": "michaela.szaboova@gympost.sk",
     "phone": "+421 903 91 743",
     "country": "SK",
-    "regionId": "reg-sk-za",
-    "orgId": "org-uniza",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-uniza-fri",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1994-10-25",
@@ -2585,10 +2684,10 @@ const INITIAL_USERS = [
     "email": "jan.szabo@uniba.sk",
     "phone": "+421 908 73 792",
     "country": "SK",
-    "regionId": "reg-sk-tt",
-    "orgId": "org-minedu-sk",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-minedu-dig",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "suspended",
     "personalInfo": {
       "dateOfBirth": "1980-08-20",
@@ -2654,16 +2753,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-047",
     "username": "adam.sedlacek",
-    "name": "Mgr. Adam Sedláček",
+    "name": "Adam Sedláček",
     "firstName": "Adam",
     "lastName": "Sedláček",
     "email": "adam.sedlacek@edu-portal.cz",
     "phone": "+420 608 35 247",
-    "country": "CZ",
-    "regionId": "reg-cz-olk",
-    "orgId": "org-cvut",
+    "country": "SK",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-cvut-fit",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1992-01-20",
@@ -2679,16 +2778,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-048",
     "username": "filip.toth",
-    "name": "RNDr. Filip Tóth, Ph.D.",
+    "name": "Filip Tóth, Ph.D.",
     "firstName": "Filip",
     "lastName": "Tóth",
     "email": "filip.toth@stuba.sk",
     "phone": "+421 950 95 852",
     "country": "SK",
-    "regionId": "reg-sk-nr",
-    "orgId": "org-tuke",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-tuke-fei",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1973-01-12",
@@ -2754,16 +2853,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-051",
     "username": "klara.pospisilova",
-    "name": "Mgr. Klára Pospíšilová",
+    "name": "Klára Pospíšilová",
     "firstName": "Klára",
     "lastName": "Pospíšilová",
     "email": "klara.pospisilova@cuni.cz",
     "phone": "+420 775 79 480",
-    "country": "CZ",
-    "regionId": "reg-cz-prg",
-    "orgId": "org-cvut",
+    "country": "SK",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-cvut-fit",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1969-10-05",
@@ -2879,7 +2978,7 @@ const INITIAL_USERS = [
   {
     "id": "usr-056",
     "username": "maria.vargova41",
-    "name": "doc. RNDr. Mária Vargová",
+    "name": "RNDr. Mária Vargová",
     "firstName": "Mária",
     "lastName": "Vargová",
     "email": "maria.vargova@stuba.sk",
@@ -2888,7 +2987,7 @@ const INITIAL_USERS = [
     "regionId": "reg-sk-ke",
     "orgId": "org-gpost",
     "subOrgId": "sub-gpost-gym",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "inactive",
     "personalInfo": {
       "dateOfBirth": "1985-04-25",
@@ -3104,16 +3203,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-065",
     "username": "jiri.pospisil27",
-    "name": "RNDr. Jiří Pospíšil",
+    "name": "Jiří Pospíšil",
     "firstName": "Jiří",
     "lastName": "Pospíšil",
     "email": "jiri.pospisil@edu-portal.cz",
     "phone": "+420 776 56 565",
-    "country": "CZ",
-    "regionId": "reg-cz-msk",
-    "orgId": "org-vsb",
+    "country": "SK",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-vsb-fei",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "suspended",
     "personalInfo": {
       "dateOfBirth": "2003-06-14",
@@ -3154,16 +3253,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-067",
     "username": "petr.novotny33",
-    "name": "Mgr. Petr Novotný",
+    "name": "Petr Novotný",
     "firstName": "Petr",
     "lastName": "Novotný",
     "email": "petr.novotny@cuni.cz",
     "phone": "+420 605 84 756",
-    "country": "CZ",
-    "regionId": "reg-cz-jhc",
-    "orgId": "org-gjk",
+    "country": "SK",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-gjk-sec",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "suspended",
     "personalInfo": {
       "dateOfBirth": "1991-06-13",
@@ -3279,16 +3378,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-072",
     "username": "pavol.kollar15",
-    "name": "PhDr. Pavol Kollár",
+    "name": "Pavol Kollár",
     "firstName": "Pavol",
     "lastName": "Kollár",
     "email": "pavol.kollar@uniba.sk",
     "phone": "+421 915 84 326",
     "country": "SK",
-    "regionId": "reg-sk-tn",
-    "orgId": "org-uniza",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-uniza-fri",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "suspended",
     "personalInfo": {
       "dateOfBirth": "1974-01-09",
@@ -3409,11 +3508,11 @@ const INITIAL_USERS = [
     "lastName": "Pokorná",
     "email": "hana.pokorna@cuni.cz",
     "phone": "+420 737 87 890",
-    "country": "CZ",
-    "regionId": "reg-cz-plk",
-    "orgId": "org-kraj-cz-prg",
+    "country": "SK",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-mhmp-ins",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "inactive",
     "personalInfo": {
       "dateOfBirth": "1983-04-23",
@@ -3429,16 +3528,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-078",
     "username": "daniela.krajcikova55",
-    "name": "Ing. Daniela Krajčíková",
+    "name": "Daniela Krajčíková",
     "firstName": "Daniela",
     "lastName": "Krajčíková",
     "email": "daniela.krajcikova@skolstvo.sk",
     "phone": "+421 911 95 711",
     "country": "SK",
     "regionId": "reg-sk-ke",
-    "orgId": "org-tuke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-tuke-fei",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "inactive",
     "personalInfo": {
       "dateOfBirth": "1985-07-01",
@@ -3604,16 +3703,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-085",
     "username": "jiri.sedlacek50",
-    "name": "Ing. Jiří Sedláček",
+    "name": "Jiří Sedláček",
     "firstName": "Jiří",
     "lastName": "Sedláček",
     "email": "jiri.sedlacek@edu-portal.cz",
     "phone": "+420 604 44 412",
-    "country": "CZ",
-    "regionId": "reg-cz-ulk",
-    "orgId": "org-kraj-cz-prg",
+    "country": "SK",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-mhmp-ins",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1976-06-23",
@@ -3654,16 +3753,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-087",
     "username": "hana.pospisilova79",
-    "name": "Mgr. Hana Pospíšilová",
+    "name": "Hana Pospíšilová",
     "firstName": "Hana",
     "lastName": "Pospíšilová",
     "email": "hana.pospisilova@edu-portal.cz",
     "phone": "+420 607 35 204",
-    "country": "CZ",
-    "regionId": "reg-cz-olk",
-    "orgId": "org-cvut",
+    "country": "SK",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-cvut-fit",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "suspended",
     "personalInfo": {
       "dateOfBirth": "1980-05-28",
@@ -3804,16 +3903,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-093",
     "username": "daniel.kucera40",
-    "name": "MUDr. Daniel Kučera",
+    "name": "Daniel Kučera",
     "firstName": "Daniel",
     "lastName": "Kučera",
     "email": "daniel.kucera@cuni.cz",
     "phone": "+420 776 95 215",
-    "country": "CZ",
-    "regionId": "reg-cz-prg",
-    "orgId": "org-gjk",
+    "country": "SK",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-gjk-sec",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1996-11-20",
@@ -3854,16 +3953,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-095",
     "username": "michaela.dvorakova94",
-    "name": "Mgr. Michaela Dvořáková",
+    "name": "Michaela Dvořáková",
     "firstName": "Michaela",
     "lastName": "Dvořáková",
     "email": "michaela.dvorakova@cuni.cz",
     "phone": "+420 606 22 112",
-    "country": "CZ",
-    "regionId": "reg-cz-stc",
-    "orgId": "org-cuni",
+    "country": "SK",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-cuni-mff",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "suspended",
     "personalInfo": {
       "dateOfBirth": "1973-12-01",
@@ -3979,16 +4078,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-100",
     "username": "jakub.sopko25",
-    "name": "prof. Ing. Jakub Sopko",
+    "name": "Ing. Jakub Sopko",
     "firstName": "Jakub",
     "lastName": "Sopko",
     "email": "jakub.sopko@stuba.sk",
     "phone": "+421 902 61 926",
     "country": "SK",
-    "regionId": "reg-sk-tt",
-    "orgId": "org-uniza",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-uniza-fri",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "suspended",
     "personalInfo": {
       "dateOfBirth": "1984-12-23",
@@ -4229,16 +4328,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-110",
     "username": "branislav.novak59",
-    "name": "RNDr. Branislav Novák",
+    "name": "Branislav Novák",
     "firstName": "Branislav",
     "lastName": "Novák",
     "email": "branislav.novak@gympost.sk",
     "phone": "+421 911 28 648",
     "country": "SK",
-    "regionId": "reg-sk-za",
-    "orgId": "org-uniza",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-uniza-fri",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "suspended",
     "personalInfo": {
       "dateOfBirth": "1995-10-08",
@@ -4409,11 +4508,11 @@ const INITIAL_USERS = [
     "lastName": "Růžička",
     "email": "pavel.ruzicka@muni.cz",
     "phone": "+420 604 82 231",
-    "country": "CZ",
-    "regionId": "reg-cz-ulk",
-    "orgId": "org-vut",
+    "country": "SK",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-vut-fit",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "suspended",
     "personalInfo": {
       "dateOfBirth": "1981-12-26",
@@ -4479,16 +4578,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-120",
     "username": "robert.krajcik53",
-    "name": "doc. RNDr. Róbert Krajčík, CSc.",
+    "name": "RNDr. Róbert Krajčík, CSc.",
     "firstName": "Róbert",
     "lastName": "Krajčík",
     "email": "robert.krajcik@stuba.sk",
     "phone": "+421 910 67 868",
     "country": "SK",
-    "regionId": "reg-sk-bb",
-    "orgId": "org-tuke",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-tuke-fei",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1975-07-01",
@@ -4554,16 +4653,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-123",
     "username": "natalie.svobodova64",
-    "name": "PhDr. Natálie Svobodová, MBA",
+    "name": "Natálie Svobodová, MBA",
     "firstName": "Natálie",
     "lastName": "Svobodová",
     "email": "natalie.svobodova@muni.cz",
     "phone": "+420 604 97 971",
-    "country": "CZ",
-    "regionId": "reg-cz-plk",
-    "orgId": "org-kraj-cz-prg",
+    "country": "SK",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-mhmp-ins",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1965-03-22",
@@ -4604,16 +4703,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-125",
     "username": "david.kral81",
-    "name": "doc. RNDr. David Král",
+    "name": "RNDr. David Král",
     "firstName": "David",
     "lastName": "Král",
     "email": "david.kral@muni.cz",
     "phone": "+420 602 11 758",
-    "country": "CZ",
-    "regionId": "reg-cz-ulk",
-    "orgId": "org-cvut",
+    "country": "SK",
+    "regionId": "reg-sk-ke",
+    "orgId": "org-gpost",
     "subOrgId": "sub-cvut-fel",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1997-08-28",
@@ -4679,7 +4778,7 @@ const INITIAL_USERS = [
   {
     "id": "usr-128",
     "username": "miroslav.balaz16",
-    "name": "Mgr. Miroslav Baláž",
+    "name": "Miroslav Baláž",
     "firstName": "Miroslav",
     "lastName": "Baláž",
     "email": "miroslav.balaz@skolstvo.sk",
@@ -4688,7 +4787,7 @@ const INITIAL_USERS = [
     "regionId": "reg-sk-ke",
     "orgId": "org-gpost",
     "subOrgId": "sub-gpost-gym",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-gymnasium",
     "status": "inactive",
     "personalInfo": {
       "dateOfBirth": "1995-09-25",
@@ -4754,16 +4853,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-131",
     "username": "katerina.kucerova85",
-    "name": "prof. Ing. Kateřina Kučerová, MBA",
+    "name": "Ing. Kateřina Kučerová, MBA",
     "firstName": "Kateřina",
     "lastName": "Kučerová",
     "email": "katerina.kucerova@edu-portal.cz",
     "phone": "+420 607 94 842",
     "country": "CZ",
-    "regionId": "reg-cz-jhc",
-    "orgId": "org-gjk",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-gjk-sec",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1983-08-06",
@@ -4954,16 +5053,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-139",
     "username": "hana.kralova85",
-    "name": "PhDr. Hana Králová",
+    "name": "Hana Králová",
     "firstName": "Hana",
     "lastName": "Králová",
     "email": "hana.kralova@skola.cz",
     "phone": "+420 721 37 575",
     "country": "CZ",
-    "regionId": "reg-cz-stc",
+    "regionId": "reg-cz-prg",
     "orgId": "org-cuni",
     "subOrgId": "sub-cuni-lf1",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "inactive",
     "personalInfo": {
       "dateOfBirth": "1997-02-13",
@@ -5054,16 +5153,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-143",
     "username": "veronika.jelinkova59",
-    "name": "Ing. Veronika Jelínková",
+    "name": "Veronika Jelínková",
     "firstName": "Veronika",
     "lastName": "Jelínková",
     "email": "veronika.jelinkova@edu-portal.cz",
     "phone": "+420 605 11 116",
     "country": "CZ",
-    "regionId": "reg-cz-msk",
-    "orgId": "org-vsb",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-vsb-fei",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1998-09-22",
@@ -5104,16 +5203,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-145",
     "username": "kristyna.markova64",
-    "name": "PhDr. Kristýna Marková",
+    "name": "Kristýna Marková",
     "firstName": "Kristýna",
     "lastName": "Marková",
     "email": "kristyna.markova@cuni.cz",
     "phone": "+420 720 67 975",
     "country": "CZ",
-    "regionId": "reg-cz-jhm",
-    "orgId": "org-gjs",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-gjas-all",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "inactive",
     "personalInfo": {
       "dateOfBirth": "1992-10-12",
@@ -5304,16 +5403,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-153",
     "username": "jiri.horak98",
-    "name": "Mgr. Jiří Horák",
+    "name": "Jiří Horák",
     "firstName": "Jiří",
     "lastName": "Horák",
     "email": "jiri.horak@edu-portal.cz",
     "phone": "+420 606 61 320",
     "country": "CZ",
-    "regionId": "reg-cz-olk",
-    "orgId": "org-muni",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-muni-ped",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1995-11-04",
@@ -5354,16 +5453,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-155",
     "username": "eliska.cerna36",
-    "name": "MUDr. Eliška Černá, Ph.D.",
+    "name": "Eliška Černá, Ph.D.",
     "firstName": "Eliška",
     "lastName": "Černá",
     "email": "eliska.cerna@skola.cz",
     "phone": "+420 606 06 205",
     "country": "CZ",
-    "regionId": "reg-cz-ulk",
-    "orgId": "org-kraj-cz-prg",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-mhmp-ins",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1969-08-18",
@@ -5679,16 +5778,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-168",
     "username": "lukas.rusnak77",
-    "name": "doc. RNDr. Lukáš Rusnák",
+    "name": "RNDr. Lukáš Rusnák",
     "firstName": "Lukáš",
     "lastName": "Rusnák",
     "email": "lukas.rusnak@edusk.sk",
     "phone": "+421 901 26 652",
-    "country": "SK",
-    "regionId": "reg-sk-nr",
-    "orgId": "org-uniza",
+    "country": "CZ",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-uniza-fri",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "inactive",
     "personalInfo": {
       "dateOfBirth": "1974-06-17",
@@ -5884,11 +5983,11 @@ const INITIAL_USERS = [
     "lastName": "Lukáčová",
     "email": "katarina.lukacova@gympost.sk",
     "phone": "+421 911 96 628",
-    "country": "SK",
-    "regionId": "reg-sk-ba",
-    "orgId": "org-uniba",
+    "country": "CZ",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-uniba-pravo",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "suspended",
     "personalInfo": {
       "dateOfBirth": "1968-04-10",
@@ -5910,10 +6009,10 @@ const INITIAL_USERS = [
     "email": "veronika.jelinkova@educz.org",
     "phone": "+420 775 92 356",
     "country": "CZ",
-    "regionId": "reg-cz-jhm",
-    "orgId": "org-muni",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-muni-fi",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1975-12-24",
@@ -5979,16 +6078,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-180",
     "username": "branislav.toth98",
-    "name": "prof. Ing. Branislav Tóth",
+    "name": "Ing. Branislav Tóth",
     "firstName": "Branislav",
     "lastName": "Tóth",
     "email": "branislav.toth@stuba.sk",
     "phone": "+421 905 37 639",
-    "country": "SK",
-    "regionId": "reg-sk-nr",
-    "orgId": "org-minedu-sk",
+    "country": "CZ",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-minedu-dig",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1998-04-23",
@@ -6104,16 +6203,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-185",
     "username": "hana.markova30",
-    "name": "Ing. Hana Marková",
+    "name": "Hana Marková",
     "firstName": "Hana",
     "lastName": "Marková",
     "email": "hana.markova@cuni.cz",
     "phone": "+420 720 17 115",
     "country": "CZ",
-    "regionId": "reg-cz-ulk",
-    "orgId": "org-vut",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-vut-fit",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "inactive",
     "personalInfo": {
       "dateOfBirth": "2000-09-04",
@@ -6129,16 +6228,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-186",
     "username": "katarina.tothova86",
-    "name": "doc. RNDr. Katarína Tóthová",
+    "name": "RNDr. Katarína Tóthová",
     "firstName": "Katarína",
     "lastName": "Tóthová",
     "email": "katarina.tothova@skolstvo.sk",
     "phone": "+421 915 44 956",
-    "country": "SK",
-    "regionId": "reg-sk-ba",
-    "orgId": "org-minedu-sk",
+    "country": "CZ",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-minedu-dig",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "suspended",
     "personalInfo": {
       "dateOfBirth": "1993-10-12",
@@ -6284,11 +6383,11 @@ const INITIAL_USERS = [
     "lastName": "Oravec",
     "email": "vladimir.oravec@uniba.sk",
     "phone": "+421 915 75 134",
-    "country": "SK",
-    "regionId": "reg-sk-po",
-    "orgId": "org-stu",
+    "country": "CZ",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-stu-fei",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "2001-08-23",
@@ -6304,16 +6403,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-193",
     "username": "filip.benes70",
-    "name": "prof. Ing. Filip Beneš",
+    "name": "Ing. Filip Beneš",
     "firstName": "Filip",
     "lastName": "Beneš",
     "email": "filip.benes@educz.org",
     "phone": "+420 724 31 461",
     "country": "CZ",
-    "regionId": "reg-cz-olk",
-    "orgId": "org-cvut",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-cvut-fel",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1983-03-02",
@@ -6379,16 +6478,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-196",
     "username": "andrej.rusnak22",
-    "name": "PhDr. Andrej Rusnák",
+    "name": "Andrej Rusnák",
     "firstName": "Andrej",
     "lastName": "Rusnák",
     "email": "andrej.rusnak@stuba.sk",
     "phone": "+421 905 70 698",
-    "country": "SK",
-    "regionId": "reg-sk-ba",
-    "orgId": "org-uniba",
+    "country": "CZ",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-uniba-pravo",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1994-11-24",
@@ -6404,16 +6503,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-197",
     "username": "ondrej.kucera17",
-    "name": "Mgr. Ondřej Kučera",
+    "name": "Ondřej Kučera",
     "firstName": "Ondřej",
     "lastName": "Kučera",
     "email": "ondrej.kucera@educz.org",
     "phone": "+420 607 13 753",
     "country": "CZ",
-    "regionId": "reg-cz-olk",
-    "orgId": "org-gjk",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-gjk-sec",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1972-02-28",
@@ -6554,16 +6653,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-203",
     "username": "alena.svobodova30",
-    "name": "Ing. Alena Svobodová",
+    "name": "Alena Svobodová",
     "firstName": "Alena",
     "lastName": "Svobodová",
     "email": "alena.svobodova@skola.cz",
     "phone": "+420 601 98 182",
     "country": "CZ",
-    "regionId": "reg-cz-ulk",
-    "orgId": "org-muni",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-muni-ped",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1965-03-03",
@@ -6579,16 +6678,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-204",
     "username": "matej.hudak34",
-    "name": "Mgr. Matej Hudák",
+    "name": "Matej Hudák",
     "firstName": "Matej",
     "lastName": "Hudák",
     "email": "matej.hudak@skolstvo.sk",
     "phone": "+421 902 42 197",
-    "country": "SK",
-    "regionId": "reg-sk-tn",
-    "orgId": "org-gpost",
+    "country": "CZ",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-gpost-gym",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "inactive",
     "personalInfo": {
       "dateOfBirth": "1988-09-17",
@@ -6634,11 +6733,11 @@ const INITIAL_USERS = [
     "lastName": "Vargová",
     "email": "eva.vargova@skolstvo.sk",
     "phone": "+421 910 82 496",
-    "country": "SK",
-    "regionId": "reg-sk-nr",
-    "orgId": "org-stu",
+    "country": "CZ",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-stu-fiit",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1973-08-24",
@@ -6754,16 +6853,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-211",
     "username": "marketa.prochazkova45",
-    "name": "Ing. Markéta Procházková",
+    "name": "Markéta Procházková",
     "firstName": "Markéta",
     "lastName": "Procházková",
     "email": "marketa.prochazkova@muni.cz",
     "phone": "+420 604 13 251",
     "country": "CZ",
-    "regionId": "reg-cz-jhm",
-    "orgId": "org-muni",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-muni-ped",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1974-04-17",
@@ -6854,16 +6953,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-215",
     "username": "tomas.ruzicka87",
-    "name": "RNDr. Tomáš Růžička",
+    "name": "Tomáš Růžička",
     "firstName": "Tomáš",
     "lastName": "Růžička",
     "email": "tomas.ruzicka@cuni.cz",
     "phone": "+420 777 57 782",
     "country": "CZ",
-    "regionId": "reg-cz-jhm",
-    "orgId": "org-gjs",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-gjas-all",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1990-03-23",
@@ -7229,16 +7328,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-230",
     "username": "daniela.kollarova89",
-    "name": "doc. RNDr. Daniela Kollárová",
+    "name": "RNDr. Daniela Kollárová",
     "firstName": "Daniela",
     "lastName": "Kollárová",
     "email": "daniela.kollarova@uniba.sk",
     "phone": "+421 911 64 787",
-    "country": "SK",
-    "regionId": "reg-sk-bb",
-    "orgId": "org-gpost",
+    "country": "CZ",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-gpost-gym",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "inactive",
     "personalInfo": {
       "dateOfBirth": "1976-01-21",
@@ -7304,16 +7403,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-233",
     "username": "adela.markova64",
-    "name": "doc. RNDr. Adéla Marková, CSc.",
+    "name": "RNDr. Adéla Marková, CSc.",
     "firstName": "Adéla",
     "lastName": "Marková",
     "email": "adela.markova@muni.cz",
     "phone": "+420 607 47 209",
     "country": "CZ",
-    "regionId": "reg-cz-plk",
-    "orgId": "org-kraj-cz-prg",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-mhmp-ins",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1978-05-15",
@@ -7404,16 +7503,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-237",
     "username": "roman.vesely99",
-    "name": "prof. Ing. Roman Veselý",
+    "name": "Ing. Roman Veselý",
     "firstName": "Roman",
     "lastName": "Veselý",
     "email": "roman.vesely@educz.org",
     "phone": "+420 606 50 510",
     "country": "CZ",
-    "regionId": "reg-cz-stc",
+    "regionId": "reg-cz-prg",
     "orgId": "org-cuni",
     "subOrgId": "sub-cuni-mff",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "inactive",
     "personalInfo": {
       "dateOfBirth": "1992-10-09",
@@ -7479,16 +7578,16 @@ const INITIAL_USERS = [
   {
     "id": "usr-240",
     "username": "jana.novakova15",
-    "name": "MUDr. Jana Nováková",
+    "name": "Jana Nováková",
     "firstName": "Jana",
     "lastName": "Nováková",
     "email": "jana.novakova@uniba.sk",
     "phone": "+421 903 11 992",
-    "country": "SK",
-    "regionId": "reg-sk-tt",
-    "orgId": "org-uniza",
+    "country": "CZ",
+    "regionId": "reg-cz-prg",
+    "orgId": "org-cuni",
     "subOrgId": "sub-uniza-fri",
-    "groupId": "grp-teachers-standard",
+    "groupId": "grp-students-university",
     "status": "active",
     "personalInfo": {
       "dateOfBirth": "1988-07-10",
@@ -9004,7 +9103,7 @@ const INITIAL_USERS = [
 ];
 
 // Export for browser
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   window.DB_INITIAL = {
     regions: INITIAL_REGIONS,
     organizations: INITIAL_ORGANIZATIONS,
